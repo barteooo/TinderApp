@@ -2,57 +2,83 @@ const express = require("express");
 const { MongoClient } = require("mongodb");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const authMiddleware = require("../middlewares/authMiddleware");
+const { validate, Joi } = require("express-validation");
 const config = require("../config");
 
 const router = express.Router();
 
-router.post("/register", async (req, res) => {
-  const client = new MongoClient(config.DATABASE_URL);
+const registerValidationSchema = {
+  body: Joi.object({
+    email: Joi.string().email().required(),
+    password: Joi.string().required(),
+    reppassword: Joi.string().required(),
+  }),
+};
 
-  try {
-    const { email, password, reppassword } = req.body;
+const signinValidationSchema = {
+  body: Joi.object({
+    email: Joi.string().email().required(),
+    password: Joi.string().required(),
+  }),
+};
 
-    // Validacja
+router.post(
+  "/register",
+  validate(registerValidationSchema),
+  async (req, res) => {
+    const client = new MongoClient(config.DATABASE_URL);
 
-    await client.connect();
-    const database = client.db(config.DARABASE_NAME);
+    try {
+      const { email, password, reppassword } = req.body;
 
-    const user = await database.collection("users").findOne({ email });
+      await client.connect();
+      const database = client.db(config.DARABASE_NAME);
 
-    if (user) {
-      res.statusCode = 400;
-      res.json({ message: "User with this email exists now" });
-      return;
+      const user = await database.collection("users").findOne({ email });
+
+      if (user) {
+        res.statusCode = 400;
+        res.json({ message: "User with this email exists now" });
+        return;
+      }
+
+      if (password !== reppassword) {
+        res.statusCode = 400;
+        res.json({ message: "Incorrect passwords" });
+        return;
+      }
+
+      await database.collection("users").insertOne({
+        email: email.toLowerCase(),
+        password: await bcrypt.hash(password, 8),
+        name: "",
+        surname: "",
+        gender: "",
+        dateOfBirth: "",
+        interests: [],
+        genderInterest: "",
+        about: "",
+        matches: [],
+        images: [],
+      });
+
+      res.sendStatus(200);
+    } catch (error) {
+      console.error(error);
+      res.sendStatus(500);
+    } finally {
+      await client.close();
     }
-
-    if (password !== reppassword) {
-      res.statusCode = 400;
-      res.json({ message: "Incorrect passwords" });
-      return;
-    }
-
-    await database.collection("users").insertOne({
-      email: email.toLowerCase(),
-      password: await bcrypt.hash(password, 8),
-    });
-
-    res.sendStatus(200);
-  } catch (error) {
-    console.error(error);
-    res.sendStatus(500);
-  } finally {
-    await client.close();
   }
-});
+);
 
-router.post("/signin", async (req, res) => {
+router.post("/signin", validate(signinValidationSchema), async (req, res) => {
   console.log("sigin endpoint");
   const client = new MongoClient(config.DATABASE_URL);
 
   try {
     const { email, password } = req.body;
-
-    // Validacja danych
 
     await client.connect();
     const database = client.db(config.DARABASE_NAME);
@@ -84,6 +110,10 @@ router.post("/signin", async (req, res) => {
   } finally {
     await client.close();
   }
+});
+
+router.post("/checkauth", authMiddleware, (req, res) => {
+  res.sendStatus(200);
 });
 
 module.exports = router;

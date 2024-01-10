@@ -15,7 +15,24 @@ const authRoutes = require("./routes/authRoutes");
 app.use("/api/auth", authRoutes);
 
 const usersRoutes = require("./routes/usersRoutes");
+const { ValidationError } = require("express-validation");
 app.use("/api/users", usersRoutes);
+
+app.use((err, req, res, next) => {
+  if (err instanceof ValidationError) {
+    let message = "";
+    if (err.details.body?.length > 0) {
+      message = err.details.body.map((x) => x.message).join(";");
+    }
+
+    if (err.details.query?.length > 0) {
+      message = err.details.query.map((x) => x.message).join(";");
+    }
+    res.status(err.statusCode).json({ err });
+    return;
+  }
+  return res.status(500).json({ message: err.toString() });
+});
 
 const mongoClient = new MongoClient(config.DATABASE_URL);
 
