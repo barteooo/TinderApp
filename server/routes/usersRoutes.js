@@ -119,10 +119,9 @@ router.put("/:id", authMiddleware, async (req, res) => {
 
 router.delete("/:id", authMiddleware, async (req, res) => {
   const client = new MongoClient(config.DATABASE_URL);
-
   try {
     const { id } = req.params;
-    const usersCollection = client.db(config.DARABASE_NAME).collection("users");
+    const usersCollection = client.db(config.DATABASE_NAME).collection("users");
     await usersCollection.deleteOne({ _id: new ObjectId(id) });
     res.sendStatus(200);
   } catch (error) {

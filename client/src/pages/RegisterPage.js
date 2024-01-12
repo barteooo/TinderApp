@@ -22,10 +22,7 @@ const RegisterPage = () => {
     onSubmit: async (values, helpers) => {
       const result = await AuthApi.register(values);
       if (!result.success) {
-        helpers.setErrors((s) => ({
-          ...s,
-          error: result.message,
-        }));
+        helpers.setErrors({ error: result.message });
         return;
       }
 

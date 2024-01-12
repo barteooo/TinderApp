@@ -21,10 +21,7 @@ const LoginPage = () => {
     onSubmit: async (values, helpers) => {
       const result = await AuthApi.signin(values);
       if (!result.success) {
-        helpers.setErrors((s) => ({
-          ...s,
-          error: result.message,
-        }));
+        helpers.setErrors({ error: result.message });
         return;
       }
 

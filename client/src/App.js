@@ -14,11 +14,7 @@ import AuthApi from "./api/AuthApi";
 import UserPageLayout from "./layouts/UserPageLayout";
 
 const nonauthLoader = async () => {
-  if (TokenService.tokenExists()) {
-    return redirect("/user/edit");
-  }
-
-  if (await AuthApi.checkAuth()) {
+  if (TokenService.tokenExists() && (await AuthApi.checkAuth())) {
     return redirect("/user/edit");
   }
   return null;
