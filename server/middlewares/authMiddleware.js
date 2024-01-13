@@ -1,7 +1,8 @@
 const jwt = require("jsonwebtoken");
 const config = require("../config");
+const { MongoClient, ObjectId } = require("mongodb");
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
   const bearerHeader = req.headers.authorization;
   if (!bearerHeader) {
     res.sendStatus(401);
@@ -14,13 +15,21 @@ const authMiddleware = (req, res, next) => {
     return;
   }
 
+  let tokenData;
   try {
-    jwt.verify(token, config.SECRET_KEY);
+    tokenData = jwt.verify(token, config.SECRET_KEY);
   } catch {
     res.sendStatus(401);
     return;
   }
 
+  const client = new MongoClient(config.DATABASE_URL);
+  const usersCollection = client.db(config.DARABASE_NAME).collection("users");
+  req.user = await usersCollection.findOne({ _id: new ObjectId(tokenData.id) });
+
+  client.close();
+
+  console.log(req.user._id);
   next();
 };
 

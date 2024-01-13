@@ -29,6 +29,15 @@ router.get("/one/:id", authMiddleware, async (req, res) => {
     const userDTO = {
       _id: user._id,
       email: user.email,
+      name: user.name,
+      surname: user.surname,
+      gender: user.gender,
+      dateOfBirth: user.dateOfBirth,
+      interests: user.interests,
+      genderInterest: user.genderInterest,
+      about: user.about,
+      matches: user.matches,
+      images: user.images,
     };
 
     res.json({ user: userDTO });
@@ -40,12 +49,27 @@ router.get("/one/:id", authMiddleware, async (req, res) => {
   }
 });
 
-router.put("/:id", authMiddleware, async (req, res) => {
+router.get("/current", authMiddleware, async (req, res) => {
+  const userDTO = {
+    email: req.user.email,
+    name: req.user.name,
+    surname: req.user.surname,
+    gender: req.user.gender,
+    dateOfBirth: req.user.dateOfBirth,
+    interests: req.user.interests,
+    genderInterest: req.user.genderInterest,
+    about: req.user.about,
+    matches: req.user.matches,
+    images: req.user.images,
+  };
+
+  res.json({ user: userDTO });
+});
+
+router.put("/current", authMiddleware, async (req, res) => {
   const client = new MongoClient(config.DATABASE_URL);
 
   try {
-    const { id } = req.params;
-
     const {
       password,
       reppassword,
@@ -62,7 +86,7 @@ router.put("/:id", authMiddleware, async (req, res) => {
 
     const usersCollection = client.db(config.DARABASE_NAME).collection("users");
 
-    const user = await usersCollection.findOne({ _id: new ObjectId(id) });
+    const user = req.user;
     if (password && reppassword && password === reppassword) {
       user.password = await bcrypt.hash(password, 8);
     }
@@ -100,13 +124,10 @@ router.put("/:id", authMiddleware, async (req, res) => {
     }
 
     if (images?.length > 0) {
-      user.matches = matches;
+      user.images = images;
     }
 
-    await usersCollection.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { ...user } }
-    );
+    await usersCollection.updateOne({ _id: user._id }, { $set: { ...user } });
 
     res.sendStatus(200);
   } catch (error) {
@@ -117,12 +138,11 @@ router.put("/:id", authMiddleware, async (req, res) => {
   }
 });
 
-router.delete("/:id", authMiddleware, async (req, res) => {
+router.delete("/current", authMiddleware, async (req, res) => {
   const client = new MongoClient(config.DATABASE_URL);
   try {
-    const { id } = req.params;
     const usersCollection = client.db(config.DATABASE_NAME).collection("users");
-    await usersCollection.deleteOne({ _id: new ObjectId(id) });
+    await usersCollection.deleteOne({ _id: req.user_id });
     res.sendStatus(200);
   } catch (error) {
     console.error(error);

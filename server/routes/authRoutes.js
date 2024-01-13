@@ -57,7 +57,7 @@ router.post(
         gender: "",
         dateOfBirth: "",
         interests: [],
-        genderInterest: "",
+        genderInterest: [],
         about: "",
         matches: [],
         images: [],
@@ -84,7 +84,6 @@ router.post("/signin", validate(signinValidationSchema), async (req, res) => {
     const database = client.db(config.DARABASE_NAME);
 
     const user = await database.collection("users").findOne({ email });
-
     if (!user) {
       res.statusCode = 400;
       res.json({ message: "User with this email not exists" });
