@@ -14,7 +14,7 @@ router.get("/one/:id", authMiddleware, async (req, res) => {
     const { id } = req.params;
 
     await client.connect();
-    const database = client.db(config.DARABASE_NAME);
+    const database = client.db(config.DATABASE_NAME);
 
     const user = await database
       .collection("users")
@@ -84,7 +84,7 @@ router.put("/current", authMiddleware, async (req, res) => {
       images,
     } = req.body;
 
-    const usersCollection = client.db(config.DARABASE_NAME).collection("users");
+    const usersCollection = client.db(config.DATABASE_NAME).collection("users");
 
     const user = req.user;
     if (password && reppassword && password === reppassword) {
@@ -141,8 +141,11 @@ router.put("/current", authMiddleware, async (req, res) => {
 router.delete("/current", authMiddleware, async (req, res) => {
   const client = new MongoClient(config.DATABASE_URL);
   try {
-    const usersCollection = client.db(config.DATABASE_NAME).collection("users");
-    await usersCollection.deleteOne({ _id: req.user_id });
+    const result = await client
+      .db(config.DATABASE_NAME)
+      .collection("users")
+      .deleteOne({ _id: req.user._id });
+    console.log(result);
     res.sendStatus(200);
   } catch (error) {
     console.error(error);

@@ -33,7 +33,7 @@ router.post(
       const { email, password, reppassword } = req.body;
 
       await client.connect();
-      const database = client.db(config.DARABASE_NAME);
+      const database = client.db(config.DATABASE_NAME);
 
       const user = await database.collection("users").findOne({ email });
 
@@ -81,7 +81,7 @@ router.post("/signin", validate(signinValidationSchema), async (req, res) => {
     const { email, password } = req.body;
 
     await client.connect();
-    const database = client.db(config.DARABASE_NAME);
+    const database = client.db(config.DATABASE_NAME);
 
     const user = await database.collection("users").findOne({ email });
     if (!user) {

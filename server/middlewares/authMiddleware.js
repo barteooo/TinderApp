@@ -24,12 +24,16 @@ const authMiddleware = async (req, res, next) => {
   }
 
   const client = new MongoClient(config.DATABASE_URL);
-  const usersCollection = client.db(config.DARABASE_NAME).collection("users");
+  const usersCollection = client.db(config.DATABASE_NAME).collection("users");
   req.user = await usersCollection.findOne({ _id: new ObjectId(tokenData.id) });
 
-  client.close();
+  await client.close();
 
-  console.log(req.user._id);
+  if (!req.user) {
+    res.sendStatus(401);
+    return;
+  }
+
   next();
 };
 

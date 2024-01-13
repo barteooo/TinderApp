@@ -48,6 +48,25 @@ class UsersApi {
       },
     };
   }
+
+  static async deleteCurrentUser() {
+    const token = TokenService.getToken();
+    const res = await fetch(`${config.API_ADDRES}/users/current`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) {
+      return {
+        success: false,
+      };
+    }
+
+    return {
+      success: true,
+    };
+  }
 }
 
 export default UsersApi;

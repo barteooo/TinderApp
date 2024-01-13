@@ -3,5 +3,5 @@ module.exports = {
   TOKEN_EXPIRATION: "7d",
   DATABASE_URL:
     "mongodb+srv://barteoo:123@tinderdatabase.bya2xgg.mongodb.net/?retryWrites=true&w=majority",
-  DARABASE_NAME: "tinder-app",
+  DATABASE_NAME: "tinder-app",
 };

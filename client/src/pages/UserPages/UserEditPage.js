@@ -1,8 +1,12 @@
 import { useFormik } from "formik";
 import { useCallback, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import UsersApi from "../../api/UsersApi";
+import TokenService from "../../services/TokenService";
 
 const UserEditPage = () => {
+  const navigate = useNavigate();
+
   const formik = useFormik({
     initialValues: {
       name: "",
@@ -29,10 +33,12 @@ const UserEditPage = () => {
       formik.setValues({
         name: result.user.name,
         surname: result.user.surname,
-        gender: result.user.gender,
+        gender: result.user.gender ? result.user.gender : "men",
         dateOfBirth: result.user.dateOfBirth,
         interests: result.user.interests,
-        genderInterest: result.user.genderInterest,
+        genderInterest: result.user.genderInterest
+          ? result.user.genderInterest
+          : "men",
         about: result.user.about,
         images: result.user.images.join("\n"),
       });
@@ -53,6 +59,16 @@ const UserEditPage = () => {
     },
     [formik]
   );
+
+  const handleClickDeleteAccount = useCallback(async () => {
+    const result = await UsersApi.deleteCurrentUser();
+    if (result.success) {
+      TokenService.removeToken();
+      navigate("/login");
+    } else {
+      alert("Error");
+    }
+  }, [navigate]);
 
   return (
     <div>
@@ -202,6 +218,10 @@ const UserEditPage = () => {
           <button type="submit">Update</button>
         </div>
       </form>
+
+      <div>
+        <button onClick={handleClickDeleteAccount}>Delete account</button>
+      </div>
     </div>
   );
 };
