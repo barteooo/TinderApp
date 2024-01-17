@@ -26,6 +26,28 @@ class UsersApi {
     };
   }
 
+  static async addMatch(userId) {
+    const token = TokenService.getToken();
+
+    const res = await fetch(`${config.API_ADDRES}/users/addmatch/${userId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      return {
+        success: false,
+      };
+    }
+
+    return {
+      success: true,
+    };
+  }
+
   static async getCurrentUser() {
     const token = TokenService.getToken();
     const res = await fetch(`${config.API_ADDRES}/users/current`, {
@@ -46,6 +68,27 @@ class UsersApi {
       user: {
         ...data.user,
       },
+    };
+  }
+
+  static async getInterestUsers() {
+    const token = TokenService.getToken();
+    const res = await fetch(`${config.API_ADDRES}/users/interest`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) {
+      return {
+        success: false,
+      };
+    }
+
+    const data = await res.json();
+    return {
+      success: true,
+      users: data.users,
     };
   }
 

@@ -60,6 +60,7 @@ router.post(
         genderInterest: [],
         about: "",
         matches: [],
+        gotMatches: [],
         images: [],
         filterByInterests: false,
       });

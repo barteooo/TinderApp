@@ -82,6 +82,9 @@ router.get("/interest", authMiddleware, async (req, res) => {
           interests: {
             $in: req.user.interests,
           },
+          gotMatches: {
+            $nin: [req.user._id],
+          },
         })
         .toArray();
     } else {
@@ -89,11 +92,44 @@ router.get("/interest", authMiddleware, async (req, res) => {
         .find({
           _id: { $ne: req.user._id },
           gender: req.user.genderInterest,
+          gotMatches: {
+            $nin: [req.user._id],
+          },
         })
         .toArray();
     }
 
     res.json({ users });
+  } catch (error) {
+    console.error(error);
+    res.sendStatus(500);
+  } finally {
+    await client.close();
+  }
+});
+
+router.put("/addmatch/:id", authMiddleware, async (req, res) => {
+  const client = new MongoClient(config.DATABASE_URL);
+
+  try {
+    const { id } = req.params;
+
+    const usersCollection = client.db(config.DATABASE_NAME).collection("users");
+    const user = await usersCollection.findOne({ _id: new ObjectId(id) });
+    if (!user) {
+      res.sendStatus(400);
+    }
+
+    if (!user.gotMatches.includes(req.user._id)) {
+      await usersCollection.updateOne(
+        { _id: new ObjectId(id) },
+        {
+          $set: { gotMatches: [...user.gotMatches, req.user._id] },
+        }
+      );
+    }
+
+    res.sendStatus(200);
   } catch (error) {
     console.error(error);
     res.sendStatus(500);
@@ -119,6 +155,7 @@ router.put("/current", authMiddleware, async (req, res) => {
       matches,
       images,
       filterByInterests,
+      gotMatches,
     } = req.body;
 
     const usersCollection = client.db(config.DATABASE_NAME).collection("users");
@@ -156,16 +193,20 @@ router.put("/current", authMiddleware, async (req, res) => {
       user.about = about;
     }
 
-    if (matches?.length > 0) {
+    if (matches) {
       user.matches = matches;
     }
 
-    if (images?.length > 0) {
+    if (images) {
       user.images = images;
     }
 
     if (filterByInterests != null && filterByInterests != undefined) {
       user.filterByInterests = filterByInterests;
+    }
+
+    if (gotMatches) {
+      user.gotMatches = gotMatches;
     }
 
     await usersCollection.updateOne({ _id: user._id }, { $set: { ...user } });
