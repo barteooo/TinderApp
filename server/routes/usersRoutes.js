@@ -67,6 +67,41 @@ router.get("/current", authMiddleware, async (req, res) => {
   res.json({ user: userDTO });
 });
 
+router.get("/interest", authMiddleware, async (req, res) => {
+  const client = new MongoClient(config.DATABASE_URL);
+
+  try {
+    const usersCollection = client.db(config.DATABASE_NAME).collection("users");
+
+    let users = [];
+    if (req.user.filterByInterests) {
+      users = await usersCollection
+        .find({
+          _id: { $ne: req.user._id },
+          gender: req.user.genderInterest,
+          interests: {
+            $in: req.user.interests,
+          },
+        })
+        .toArray();
+    } else {
+      users = await usersCollection
+        .find({
+          _id: { $ne: req.user._id },
+          gender: req.user.genderInterest,
+        })
+        .toArray();
+    }
+
+    res.json({ users });
+  } catch (error) {
+    console.error(error);
+    res.sendStatus(500);
+  } finally {
+    await client.close();
+  }
+});
+
 router.put("/current", authMiddleware, async (req, res) => {
   const client = new MongoClient(config.DATABASE_URL);
 
