@@ -12,6 +12,7 @@ import UserEditPage from "./pages/UserPages/UserEditPage";
 import TokenService from "./services/TokenService";
 import AuthApi from "./api/AuthApi";
 import UserPageLayout from "./layouts/UserPageLayout";
+import UserMainPage from "./pages/UserPages/UserMainPage";
 
 const nonauthLoader = async () => {
   if (TokenService.tokenExists() && (await AuthApi.checkAuth())) {
@@ -57,6 +58,10 @@ const router = createBrowserRouter([
     loader: authLoader,
     Component: UserPageLayout,
     children: [
+      {
+        path: "/user",
+        Component: UserMainPage,
+      },
       {
         path: "/user/edit",
         Component: UserEditPage,

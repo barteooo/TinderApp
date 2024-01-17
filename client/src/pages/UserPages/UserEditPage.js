@@ -17,6 +17,7 @@ const UserEditPage = () => {
       genderInterest: "men",
       about: "",
       images: "",
+      filterByInterests: false,
     },
     onSubmit: async (values) => {
       const userData = { ...values };
@@ -29,7 +30,6 @@ const UserEditPage = () => {
   useEffect(() => {
     const getUserData = async () => {
       const result = await UsersApi.getCurrentUser();
-      console.log(result);
       formik.setValues({
         name: result.user.name,
         surname: result.user.surname,
@@ -41,6 +41,7 @@ const UserEditPage = () => {
           : "men",
         about: result.user.about,
         images: result.user.images.join("\n"),
+        filterByInterests: result.user.filterByInterests,
       });
     };
 
@@ -213,6 +214,17 @@ const UserEditPage = () => {
               <div>{formik.errors.genderInterest}</div>
             ) : null}
           </div>
+        </div>
+        <div>
+          <label>Filter by interests</label>
+          <input
+            type="checkbox"
+            checked={formik.values.filterByInterests}
+            value={formik.values.filterByInterests}
+            onChange={(e) => {
+              formik.setFieldValue("filterByInterests", e.target.checked);
+            }}
+          />
         </div>
         <div>
           <button type="submit">Update</button>

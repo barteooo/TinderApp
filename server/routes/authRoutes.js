@@ -61,6 +61,7 @@ router.post(
         about: "",
         matches: [],
         images: [],
+        filterByInterests: false,
       });
 
       res.sendStatus(200);

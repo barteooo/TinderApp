@@ -3,7 +3,7 @@ const config = require("../config");
 const { MongoClient, ObjectId } = require("mongodb");
 
 const authMiddleware = async (req, res, next) => {
-  const bearerHeader = req.headers.authorization;
+  const bearerHeader = req.headers.authorization; // Bearer sdfasfasdasd
   if (!bearerHeader) {
     res.sendStatus(401);
     return;

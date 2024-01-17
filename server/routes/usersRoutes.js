@@ -61,6 +61,7 @@ router.get("/current", authMiddleware, async (req, res) => {
     about: req.user.about,
     matches: req.user.matches,
     images: req.user.images,
+    filterByInterests: req.user.filterByInterests,
   };
 
   res.json({ user: userDTO });
@@ -82,6 +83,7 @@ router.put("/current", authMiddleware, async (req, res) => {
       about,
       matches,
       images,
+      filterByInterests,
     } = req.body;
 
     const usersCollection = client.db(config.DATABASE_NAME).collection("users");
@@ -125,6 +127,10 @@ router.put("/current", authMiddleware, async (req, res) => {
 
     if (images?.length > 0) {
       user.images = images;
+    }
+
+    if (filterByInterests != null && filterByInterests != undefined) {
+      user.filterByInterests = filterByInterests;
     }
 
     await usersCollection.updateOne({ _id: user._id }, { $set: { ...user } });

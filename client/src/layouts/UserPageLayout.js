@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 
 const UserPageLayout = () => {
   const navigate = useNavigate();
@@ -11,6 +11,12 @@ const UserPageLayout = () => {
   return (
     <div>
       <div>
+        <nav>
+          <Link style={{ marginRight: 20 }} to="/user">
+            Main
+          </Link>
+          <Link to="/user/edit">Edit</Link>
+        </nav>
         <button onClick={handleClickLogout}>Logout</button>
       </div>
       <div style={{ border: "1px solid red" }}>
