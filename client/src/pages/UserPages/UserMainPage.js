@@ -8,9 +8,9 @@ const UserMainPage = () => {
 
   const handleUserCardSwipe = async (dir, user) => {
     if (dir === "right") {
-      console.log(user._id);
       await UsersApi.addMatch(user._id);
     } else {
+      await UsersApi.addNotMatch(user._id);
     }
   };
 

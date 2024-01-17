@@ -61,6 +61,7 @@ router.post(
         about: "",
         matches: [],
         gotMatches: [],
+        gotNotMatches: [],
         images: [],
         filterByInterests: false,
       });

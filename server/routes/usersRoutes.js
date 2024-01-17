@@ -85,6 +85,22 @@ router.get("/interest", authMiddleware, async (req, res) => {
           gotMatches: {
             $nin: [req.user._id],
           },
+          $or: [
+            { gotNotMatches: [] },
+            {
+              gotNotMatches: {
+                $elemMatch: {
+                  $or: [
+                    { id: { $ne: req.user._id } },
+                    {
+                      id: req.user._id,
+                      date: { $lt: new Date(Date.now() - 20000) },
+                    },
+                  ],
+                },
+              },
+            },
+          ],
         })
         .toArray();
     } else {
@@ -95,6 +111,22 @@ router.get("/interest", authMiddleware, async (req, res) => {
           gotMatches: {
             $nin: [req.user._id],
           },
+          $or: [
+            { gotNotMatches: [] },
+            {
+              gotNotMatches: {
+                $elemMatch: {
+                  $or: [
+                    { id: { $ne: req.user._id } },
+                    {
+                      id: req.user._id,
+                      date: { $lt: new Date(Date.now() - 20000) },
+                    },
+                  ],
+                },
+              },
+            },
+          ],
         })
         .toArray();
     }
@@ -138,6 +170,52 @@ router.put("/addmatch/:id", authMiddleware, async (req, res) => {
   }
 });
 
+router.put("/addnotmatch/:id", authMiddleware, async (req, res) => {
+  const client = new MongoClient(config.DATABASE_URL);
+
+  try {
+    const { id } = req.params;
+
+    const usersCollection = client.db(config.DATABASE_NAME).collection("users");
+    const user = await usersCollection.findOne({ _id: new ObjectId(id) });
+    if (!user) {
+      res.sendStatus(400);
+    }
+
+    const index = user.gotNotMatches.findIndex((x) => x.id === req.user._Id);
+    if (index >= 0) {
+      user.gotNotMatches[index].date = new Date();
+      await usersCollection.updateOne(
+        { _id: new ObjectId(id) },
+        {
+          $set: {
+            gotNotMatches: [...user.gotNotMatches],
+          },
+        }
+      );
+    } else {
+      await usersCollection.updateOne(
+        { _id: new ObjectId(id) },
+        {
+          $set: {
+            gotNotMatches: [
+              ...user.gotMatches,
+              { id: req.user._id, date: new Date() },
+            ],
+          },
+        }
+      );
+    }
+
+    res.sendStatus(200);
+  } catch (error) {
+    console.error(error);
+    res.sendStatus(500);
+  } finally {
+    await client.close();
+  }
+});
+
 router.put("/current", authMiddleware, async (req, res) => {
   const client = new MongoClient(config.DATABASE_URL);
 
@@ -156,6 +234,7 @@ router.put("/current", authMiddleware, async (req, res) => {
       images,
       filterByInterests,
       gotMatches,
+      gotNotMatches,
     } = req.body;
 
     const usersCollection = client.db(config.DATABASE_NAME).collection("users");
@@ -207,6 +286,10 @@ router.put("/current", authMiddleware, async (req, res) => {
 
     if (gotMatches) {
       user.gotMatches = gotMatches;
+    }
+
+    if (gotNotMatches) {
+      user.gotNotMatches = gotNotMatches;
     }
 
     await usersCollection.updateOne({ _id: user._id }, { $set: { ...user } });

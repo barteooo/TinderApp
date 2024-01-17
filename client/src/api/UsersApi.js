@@ -48,6 +48,31 @@ class UsersApi {
     };
   }
 
+  static async addNotMatch(userId) {
+    const token = TokenService.getToken();
+
+    const res = await fetch(
+      `${config.API_ADDRES}/users/addnotmatch/${userId}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!res.ok) {
+      return {
+        success: false,
+      };
+    }
+
+    return {
+      success: true,
+    };
+  }
+
   static async getCurrentUser() {
     const token = TokenService.getToken();
     const res = await fetch(`${config.API_ADDRES}/users/current`, {
