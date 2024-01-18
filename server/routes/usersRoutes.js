@@ -152,9 +152,28 @@ router.put("/addmatch/:id", authMiddleware, async (req, res) => {
       res.sendStatus(400);
     }
 
-    if (!user.gotMatches.includes(req.user._id)) {
+    if (
+      req.user.gotMatches.some((x) => x.toString() == user._id.toString()) &&
+      !req.user.matches.some((x) => x.toString() == user._id.toString())
+    ) {
       await usersCollection.updateOne(
-        { _id: new ObjectId(id) },
+        { _id: req.user._id },
+        {
+          $set: { matches: [...req.user.matches, user._id] },
+        }
+      );
+
+      await usersCollection.updateOne(
+        { _id: user._id },
+        {
+          $set: { matches: [...user.matches, req.user._id] },
+        }
+      );
+    }
+
+    if (!user.gotMatches.some((x) => x.toString() == req.user._id.toString())) {
+      await usersCollection.updateOne(
+        { _id: user._id },
         {
           $set: { gotMatches: [...user.gotMatches, req.user._id] },
         }
