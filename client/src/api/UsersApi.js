@@ -43,8 +43,11 @@ class UsersApi {
       };
     }
 
+    const data = await res.json();
+
     return {
       success: true,
+      isMatch: data.isMatch,
     };
   }
 
@@ -99,6 +102,27 @@ class UsersApi {
   static async getInterestUsers() {
     const token = TokenService.getToken();
     const res = await fetch(`${config.API_ADDRES}/users/interest`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) {
+      return {
+        success: false,
+      };
+    }
+
+    const data = await res.json();
+    return {
+      success: true,
+      users: data.users,
+    };
+  }
+
+  static async getMatchedUsers() {
+    const token = TokenService.getToken();
+    const res = await fetch(`${config.API_ADDRES}/users/matches`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,

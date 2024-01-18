@@ -13,6 +13,7 @@ import TokenService from "./services/TokenService";
 import AuthApi from "./api/AuthApi";
 import UserPageLayout from "./layouts/UserPageLayout";
 import UserMainPage from "./pages/UserPages/UserMainPage";
+import UserChatPage from "./pages/UserPages/UserChatPage";
 
 const nonauthLoader = async () => {
   if (TokenService.tokenExists() && (await AuthApi.checkAuth())) {
@@ -65,6 +66,10 @@ const router = createBrowserRouter([
       {
         path: "/user/edit",
         Component: UserEditPage,
+      },
+      {
+        path: "/user/chat",
+        Component: UserChatPage,
       },
     ],
   },

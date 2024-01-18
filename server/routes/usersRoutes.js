@@ -4,6 +4,7 @@ const { MongoClient, ObjectId } = require("mongodb");
 
 const authMiddleware = require("../middlewares/authMiddleware");
 const config = require("../config");
+const { route } = require("./authRoutes");
 
 const router = express.Router();
 
@@ -140,6 +141,27 @@ router.get("/interest", authMiddleware, async (req, res) => {
   }
 });
 
+router.get("/matches", authMiddleware, async (req, res) => {
+  const client = new MongoClient(config.DATABASE_URL);
+
+  try {
+    const usersCollection = client.db(config.DATABASE_NAME).collection("users");
+
+    const users = await usersCollection
+      .find({
+        _id: { $in: req.user.matches },
+      })
+      .toArray();
+
+    res.json({ users });
+  } catch (error) {
+    console.error(error);
+    res.sendStatus(500);
+  } finally {
+    await client.close();
+  }
+});
+
 router.put("/addmatch/:id", authMiddleware, async (req, res) => {
   const client = new MongoClient(config.DATABASE_URL);
 
@@ -152,6 +174,7 @@ router.put("/addmatch/:id", authMiddleware, async (req, res) => {
       res.sendStatus(400);
     }
 
+    let isMatch = false;
     if (
       req.user.gotMatches.some((x) => x.toString() == user._id.toString()) &&
       !req.user.matches.some((x) => x.toString() == user._id.toString())
@@ -169,6 +192,8 @@ router.put("/addmatch/:id", authMiddleware, async (req, res) => {
           $set: { matches: [...user.matches, req.user._id] },
         }
       );
+
+      isMatch = true;
     }
 
     if (!user.gotMatches.some((x) => x.toString() == req.user._id.toString())) {
@@ -180,7 +205,9 @@ router.put("/addmatch/:id", authMiddleware, async (req, res) => {
       );
     }
 
-    res.sendStatus(200);
+    res.status(200).json({
+      isMatch,
+    });
   } catch (error) {
     console.error(error);
     res.sendStatus(500);
