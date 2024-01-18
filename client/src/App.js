@@ -68,7 +68,7 @@ const router = createBrowserRouter([
         Component: UserEditPage,
       },
       {
-        path: "/user/chat",
+        path: "/user/chat/:id",
         Component: UserChatPage,
       },
     ],

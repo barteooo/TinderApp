@@ -19,7 +19,7 @@ const UserPageLayout = () => {
         </nav>
         <button onClick={handleClickLogout}>Logout</button>
       </div>
-      <div style={{ border: "1px solid red" }}>
+      <div>
         <Outlet />
       </div>
     </div>

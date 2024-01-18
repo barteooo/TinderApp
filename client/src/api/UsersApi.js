@@ -141,9 +141,49 @@ class UsersApi {
     };
   }
 
+  static async getOne(id) {
+    const token = TokenService.getToken();
+    const res = await fetch(`${config.API_ADDRES}/users/one/${id}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) {
+      return {
+        success: false,
+      };
+    }
+
+    const data = await res.json();
+    return {
+      success: true,
+      user: data.user,
+    };
+  }
+
   static async deleteCurrentUser() {
     const token = TokenService.getToken();
     const res = await fetch(`${config.API_ADDRES}/users/current`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) {
+      return {
+        success: false,
+      };
+    }
+
+    return {
+      success: true,
+    };
+  }
+
+  static async deleteMatch(id) {
+    const token = TokenService.getToken();
+    const res = await fetch(`${config.API_ADDRES}/users/match/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,

@@ -6,7 +6,7 @@ const UserPanel = () => {
   const [matchedUsers, setMatchedUsers] = useState([]);
 
   useEffect(() => {
-    const getgetMatchesUsers = async () => {
+    const getMatchesUsers = async () => {
       const result = await UsersApi.getMatchedUsers();
       if (!result.success) {
         alert("Error");
@@ -16,7 +16,7 @@ const UserPanel = () => {
       setMatchedUsers([...result.users]);
     };
 
-    getgetMatchesUsers();
+    getMatchesUsers();
   }, []);
 
   return (

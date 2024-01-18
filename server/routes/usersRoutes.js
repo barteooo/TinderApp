@@ -4,7 +4,6 @@ const { MongoClient, ObjectId } = require("mongodb");
 
 const authMiddleware = require("../middlewares/authMiddleware");
 const config = require("../config");
-const { route } = require("./authRoutes");
 
 const router = express.Router();
 
@@ -169,6 +168,9 @@ router.put("/addmatch/:id", authMiddleware, async (req, res) => {
     const { id } = req.params;
 
     const usersCollection = client.db(config.DATABASE_NAME).collection("users");
+    const messagesCollection = client
+      .db(config.DATABASE_NAME)
+      .collection("messages");
     const user = await usersCollection.findOne({ _id: new ObjectId(id) });
     if (!user) {
       res.sendStatus(400);
@@ -192,6 +194,11 @@ router.put("/addmatch/:id", authMiddleware, async (req, res) => {
           $set: { matches: [...user.matches, req.user._id] },
         }
       );
+
+      await messagesCollection.insertOne({
+        usersIds: [req.user._id, user._id],
+        messages: [],
+      });
 
       isMatch = true;
     }
@@ -357,6 +364,73 @@ router.delete("/current", authMiddleware, async (req, res) => {
       .collection("users")
       .deleteOne({ _id: req.user._id });
     console.log(result);
+    res.sendStatus(200);
+  } catch (error) {
+    console.error(error);
+    res.sendStatus(500);
+  } finally {
+    await client.close();
+  }
+});
+
+router.delete("/match/:id", authMiddleware, async (req, res) => {
+  const client = new MongoClient(config.DATABASE_URL);
+  try {
+    const { id } = req.params;
+    const { user } = req;
+
+    const usersCollection = client.db(config.DATABASE_NAME).collection("users");
+    const messagesCollection = client
+      .db(config.DATABASE_NAME)
+      .collection("messages");
+
+    const matchedUser = await usersCollection.findOne({
+      _id: new ObjectId(id),
+    });
+
+    matchedUser.matches = matchedUser.matches.filter(
+      (x) => x.toString() !== req.user._id.toString()
+    );
+
+    matchedUser.gotMatches = matchedUser.gotMatches.filter(
+      (x) => x.toString() !== req.user._id.toString()
+    );
+
+    await usersCollection.updateOne(
+      { _id: matchedUser._id },
+      {
+        $set: {
+          matches: [...matchedUser.matches],
+          gotMatches: [...matchedUser.gotMatches],
+        },
+      }
+    );
+
+    user.matches = user.matches.filter(
+      (x) => x.toString() !== matchedUser._id.toString()
+    );
+
+    user.gotMatches = user.gotMatches.filter(
+      (x) => x.toString() !== matchedUser._id.toString()
+    );
+
+    await usersCollection.updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          matches: [...user.matches],
+          gotMatches: [...user.gotMatches],
+        },
+      }
+    );
+
+    await messagesCollection.deleteOne({
+      $and: [
+        { usersIds: { $in: [req.user._id] } },
+        { usersIds: { $in: [user._id] } },
+      ],
+    });
+
     res.sendStatus(200);
   } catch (error) {
     console.error(error);
