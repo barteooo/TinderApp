@@ -2,6 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useCallback, useContext, useEffect, useState } from "react";
 import UsersApi from "../../api/UsersApi";
 import AppContext from "../../context/AppContext";
+import MessagesApi from "../../api/MessagesApi";
 
 const UserChatPage = () => {
   const { dispatch, contextState } = useContext(AppContext);
@@ -12,19 +13,27 @@ const UserChatPage = () => {
   const params = useParams();
 
   useEffect(() => {
-    const getUserData = async () => {
-      const result = await UsersApi.getOne(params.id);
-      if (!result.success) {
-        alert("Request error");
+    const initData = async () => {
+      const matchedUser = contextState.matchedUsers?.find(
+        (x) => x._id === params.id
+      );
+
+      if (!matchedUser) {
         return;
       }
 
-      setUserData({
-        ...result.user,
-      });
+      setUserData({ ...matchedUser });
+
+      const result = await MessagesApi.getMessages(matchedUser._id);
+      if (!result.success) {
+        alert("Error getMessages");
+        return;
+      }
+
+      setMessages([...result.messages]);
     };
 
-    getUserData();
+    initData();
   }, [params]);
 
   const handleClickDeleteMatch = useCallback(async () => {
@@ -34,8 +43,16 @@ const UserChatPage = () => {
       return;
     }
 
+    const matchedResult = await UsersApi.getMatchedUsers();
+    if (!matchedResult) {
+      alert("Error getMatchedUsers");
+      return;
+    }
+
+    dispatch({ type: "SET_MATCHED_USERS", payload: matchedResult.users });
+
     naviagte("/user/");
-  }, [userData, naviagte]);
+  }, [userData, naviagte, dispatch]);
 
   return (
     <div>
@@ -53,7 +70,28 @@ const UserChatPage = () => {
 
       <div>
         <p>Messages</p>
-        <div>{}</div>
+        <div style={{ width: 300 }}>
+          {messages.map((message, index) => {
+            if (message.userId === userData._id) {
+              return (
+                <div
+                  key={index}
+                  style={{ textAlign: "left", backgroundColor: "silver" }}
+                >
+                  <h6>{message.date}</h6>
+                  <p>{message.text}</p>
+                </div>
+              );
+            }
+
+            return (
+              <div key={index} style={{ textAlign: "right" }}>
+                <h6>{message.date}</h6>
+                <p>{message.text}</p>
+              </div>
+            );
+          })}
+        </div>
         <div>
           <textarea></textarea>
           <button>Send</button>

@@ -4,6 +4,7 @@ const cors = require("cors");
 const morgan = require("morgan");
 const { MongoClient } = require("mongodb");
 const config = require("./config");
+const { ValidationError } = require("express-validation");
 
 const app = express();
 app.use(cors());
@@ -15,8 +16,10 @@ const authRoutes = require("./routes/authRoutes");
 app.use("/api/auth", authRoutes);
 
 const usersRoutes = require("./routes/usersRoutes");
-const { ValidationError } = require("express-validation");
 app.use("/api/users", usersRoutes);
+
+const messagesRoutes = require("./routes/messagesRoutes");
+app.use("/api/messages", messagesRoutes);
 
 app.use((err, req, res, next) => {
   if (err instanceof ValidationError) {

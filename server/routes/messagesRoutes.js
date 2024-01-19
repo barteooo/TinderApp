@@ -6,7 +6,7 @@ const config = require("../config");
 
 const router = express.Router();
 
-router.get("/matched/:id", async (req, res) => {
+router.get("/matched/:id", authMiddleware, async (req, res) => {
   const client = new MongoClient(config.DATABASE_URL);
 
   try {
@@ -16,11 +16,6 @@ router.get("/matched/:id", async (req, res) => {
     const messagesCollection = client
       .db(config.DATABASE_NAME)
       .collection("messages");
-
-    await messagesCollection.insertOne({
-      usersIds: [req.user._id, user._id],
-      messages: [],
-    });
 
     const chatData = await messagesCollection.findOne({
       $and: [
