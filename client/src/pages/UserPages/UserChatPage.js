@@ -1,8 +1,10 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import UsersApi from "../../api/UsersApi";
+import AppContext from "../../context/AppContext";
 
 const UserChatPage = () => {
+  const { dispatch, contextState } = useContext(AppContext);
   const [userData, setUserData] = useState({});
   const [messages, setMessages] = useState([]);
 

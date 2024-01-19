@@ -1,11 +1,7 @@
 import { useReducer } from "react";
 import AppContext from "./AppContext";
 import reducer from "./reducer";
-
-const initialState = {
-  user: {},
-  matches: [],
-};
+import { initialState } from "./AppContext";
 
 const AppContextProvider = ({ children }) => {
   const [contextState, dispatch] = useReducer(reducer, initialState);

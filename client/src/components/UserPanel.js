@@ -1,29 +1,17 @@
-import { useEffect, useState } from "react";
-import UsersApi from "../api/UsersApi";
+import { useContext } from "react";
 import UserPanelItem from "./UserPanelItem";
+import AppContext from "../context/AppContext";
 
 const UserPanel = () => {
-  const [matchedUsers, setMatchedUsers] = useState([]);
-
-  useEffect(() => {
-    const getMatchesUsers = async () => {
-      const result = await UsersApi.getMatchedUsers();
-      if (!result.success) {
-        alert("Error");
-        return;
-      }
-
-      setMatchedUsers([...result.users]);
-    };
-
-    getMatchesUsers();
-  }, []);
+  const { contextState } = useContext(AppContext);
 
   return (
     <div>
-      <div>{/* Informacje o nas */}</div>
       <div>
-        {matchedUsers.map((user, index) => {
+        {contextState.user.name} {contextState.user.surname}
+      </div>
+      <div>
+        {contextState.matchedUsers.map((user, index) => {
           return <UserPanelItem key={index} user={user} />;
         })}
       </div>

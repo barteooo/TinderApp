@@ -2,7 +2,10 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
 import AuthApi from "../api/AuthApi";
+import UsersApi from "../api/UsersApi";
 import TokenService from "../services/TokenService";
+import { useCallback, useContext } from "react";
+import AppContext from "../context/AppContext";
 
 const validationSchema = Yup.object({
   email: Yup.string().email().required(),
@@ -10,6 +13,8 @@ const validationSchema = Yup.object({
 });
 
 const LoginPage = () => {
+  const { dispatch, contextState } = useContext(AppContext);
+
   const navigate = useNavigate();
 
   const formik = useFormik({
@@ -26,9 +31,27 @@ const LoginPage = () => {
       }
 
       TokenService.setToken(result.token);
-      navigate("/user/edit");
+      initDataInContext();
+      navigate("/user");
     },
   });
+
+  const initDataInContext = useCallback(async () => {
+    const result = await UsersApi.getCurrentUser();
+    if (!result.success) {
+      return;
+    }
+
+    dispatch({ type: "SET_USER", payload: result.user });
+
+    const matchedResult = await UsersApi.getMatchedUsers();
+    if (!matchedResult) {
+      alert("Error getMatchedUsers");
+      return;
+    }
+
+    dispatch({ type: "SET_MATCHED_USERS", payload: matchedResult.users });
+  }, [dispatch]);
 
   return (
     <div>

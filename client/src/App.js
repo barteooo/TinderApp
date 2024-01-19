@@ -14,6 +14,10 @@ import AuthApi from "./api/AuthApi";
 import UserPageLayout from "./layouts/UserPageLayout";
 import UserMainPage from "./pages/UserPages/UserMainPage";
 import UserChatPage from "./pages/UserPages/UserChatPage";
+import { useContext, useEffect } from "react";
+import UsersApi from "./api/UsersApi";
+import AppContext from "./context/AppContext";
+import HomeLayout from "./layouts/HomeLayout";
 
 const nonauthLoader = async () => {
   if (TokenService.tokenExists() && (await AuthApi.checkAuth())) {
@@ -41,18 +45,22 @@ const logoutLoader = () => {
 const router = createBrowserRouter([
   {
     path: "/",
-    Component: HomePage,
+    Component: HomeLayout,
     loader: nonauthLoader,
-  },
-  {
-    path: "/login",
-    Component: LoginPage,
-    loader: nonauthLoader,
-  },
-  {
-    path: "/register",
-    Component: RegisterPage,
-    loader: nonauthLoader,
+    children: [
+      {
+        path: "/",
+        Component: HomePage,
+      },
+      {
+        path: "/login",
+        Component: LoginPage,
+      },
+      {
+        path: "/register",
+        Component: RegisterPage,
+      },
+    ],
   },
   {
     path: "/user",
@@ -80,7 +88,34 @@ const router = createBrowserRouter([
 ]);
 
 const App = () => {
-  return <RouterProvider router={router} />;
+  const { dispatch } = useContext(AppContext);
+
+  useEffect(() => {
+    const init = async () => {
+      const userResult = await UsersApi.getCurrentUser();
+      if (!userResult.success) {
+        return;
+      }
+
+      dispatch({ type: "SET_USER", payload: userResult.user });
+
+      const matchedResult = await UsersApi.getMatchedUsers();
+      if (!matchedResult) {
+        alert("Error getMatchedUsers");
+        return;
+      }
+
+      dispatch({ type: "SET_MATCHED_USERS", payload: matchedResult.users });
+    };
+
+    init();
+  }, []);
+
+  return (
+    <div>
+      <RouterProvider router={router} />
+    </div>
+  );
 };
 
 export default App;

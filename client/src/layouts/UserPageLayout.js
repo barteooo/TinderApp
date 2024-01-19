@@ -1,12 +1,15 @@
-import { useCallback } from "react";
+import { useCallback, useContext } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
+import AppContext from "../context/AppContext";
 
 const UserPageLayout = () => {
+  const { disptach } = useContext(AppContext);
   const navigate = useNavigate();
 
   const handleClickLogout = useCallback(() => {
+    disptach({ type: "CLEAR" });
     navigate("/logout");
-  }, [navigate]);
+  }, [navigate, disptach]);
 
   return (
     <div>
