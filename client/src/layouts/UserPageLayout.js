@@ -3,13 +3,13 @@ import { Link, Outlet, useNavigate } from "react-router-dom";
 import AppContext from "../context/AppContext";
 
 const UserPageLayout = () => {
-  const { disptach } = useContext(AppContext);
+  const { dispatch } = useContext(AppContext);
   const navigate = useNavigate();
 
   const handleClickLogout = useCallback(() => {
-    disptach({ type: "CLEAR" });
+    dispatch({ type: "CLEAR" });
     navigate("/logout");
-  }, [navigate, disptach]);
+  }, [navigate, dispatch]);
 
   return (
     <div>

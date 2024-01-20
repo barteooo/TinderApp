@@ -86,17 +86,22 @@ router.get("/interest", authMiddleware, async (req, res) => {
             $nin: [req.user._id],
           },
           $or: [
-            { gotNotMatches: [] },
+            {
+              gotNotMatches: {
+                $not: {
+                  $elemMatch: {
+                    id: req.user._id,
+                  },
+                },
+              },
+            },
             {
               gotNotMatches: {
                 $elemMatch: {
-                  $or: [
-                    { id: { $ne: req.user._id } },
-                    {
-                      id: req.user._id,
-                      date: { $lt: new Date(Date.now() - 20000) },
-                    },
-                  ],
+                  date: {
+                    $lt: new Date(Date.now() - 10000),
+                  },
+                  _id: req.user.id,
                 },
               },
             },
@@ -112,17 +117,22 @@ router.get("/interest", authMiddleware, async (req, res) => {
             $nin: [req.user._id],
           },
           $or: [
-            { gotNotMatches: [] },
+            {
+              gotNotMatches: {
+                $not: {
+                  $elemMatch: {
+                    id: req.user._id,
+                  },
+                },
+              },
+            },
             {
               gotNotMatches: {
                 $elemMatch: {
-                  $or: [
-                    { id: { $ne: req.user._id } },
-                    {
-                      id: req.user._id,
-                      date: { $lt: new Date(Date.now() - 20000) },
-                    },
-                  ],
+                  date: {
+                    $lt: new Date(Date.now() - 10000),
+                  },
+                  _id: req.user.id,
                 },
               },
             },
