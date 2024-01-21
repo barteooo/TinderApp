@@ -3,8 +3,10 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import UsersApi from "../../api/UsersApi";
 import AppContext from "../../context/AppContext";
 import MessagesApi from "../../api/MessagesApi";
+import { socket } from "../../socket";
 
 const UserChatPage = () => {
+  const [messageText, setMessageText] = useState("");
   const { dispatch, contextState } = useContext(AppContext);
   const [userData, setUserData] = useState({});
   const [messages, setMessages] = useState([]);
@@ -30,11 +32,26 @@ const UserChatPage = () => {
         return;
       }
 
+      console.log(result.messages);
+
       setMessages([...result.messages]);
     };
 
     initData();
   }, [params]);
+
+  useEffect(() => {
+    socket.on("message", onMessage);
+
+    return () => {
+      socket.off("message", onMessage);
+    };
+  }, []);
+
+  const onMessage = (data) => {
+    console.log("message", data);
+    setMessages((s) => [...s, data]);
+  };
 
   const handleClickDeleteMatch = useCallback(async () => {
     const result = await UsersApi.deleteMatch(userData._id);
@@ -53,6 +70,21 @@ const UserChatPage = () => {
 
     naviagte("/user/");
   }, [userData, naviagte, dispatch]);
+
+  const handleClickSend = useCallback(() => {
+    if (!messageText) {
+      return;
+    }
+
+    const messageData = {
+      date: new Date().toISOString(),
+      text: messageText,
+      userId: "",
+    };
+    setMessages([...messages, messageData]);
+
+    socket.emit("message", { to: userData._id, text: messageText });
+  }, [messageText, userData, messages]);
 
   return (
     <div>
@@ -93,8 +125,11 @@ const UserChatPage = () => {
           })}
         </div>
         <div>
-          <textarea></textarea>
-          <button>Send</button>
+          <textarea
+            value={messageText}
+            onChange={(e) => setMessageText(e.target.value)}
+          ></textarea>
+          <button onClick={handleClickSend}>Send</button>
         </div>
       </div>
     </div>

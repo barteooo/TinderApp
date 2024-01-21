@@ -18,6 +18,7 @@ import { useContext, useEffect } from "react";
 import UsersApi from "./api/UsersApi";
 import AppContext from "./context/AppContext";
 import HomeLayout from "./layouts/HomeLayout";
+import { socket } from "./socket";
 
 const nonauthLoader = async () => {
   if (TokenService.tokenExists() && (await AuthApi.checkAuth())) {
@@ -97,6 +98,8 @@ const App = () => {
         return;
       }
 
+      console.log(userResult.user);
+
       dispatch({ type: "SET_USER", payload: userResult.user });
 
       const matchedResult = await UsersApi.getMatchedUsers();
@@ -106,13 +109,20 @@ const App = () => {
       }
 
       dispatch({ type: "SET_MATCHED_USERS", payload: matchedResult.users });
+
+      socket.emit("user_data", { userId: userResult.user.id });
     };
 
     init();
   }, []);
 
+  const handleClick = () => {
+    socket.emit("message", { text: "Siema" });
+  };
+
   return (
     <div>
+      <button onClick={handleClick}>Send message</button>
       <RouterProvider router={router} />
     </div>
   );

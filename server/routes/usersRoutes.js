@@ -51,6 +51,7 @@ router.get("/one/:id", authMiddleware, async (req, res) => {
 
 router.get("/current", authMiddleware, async (req, res) => {
   const userDTO = {
+    id: req.user._id,
     email: req.user.email,
     name: req.user.name,
     surname: req.user.surname,
