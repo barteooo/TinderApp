@@ -1,10 +1,14 @@
 import { useFormik } from "formik";
-import { useCallback, useEffect } from "react";
+import { useCallback, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import UsersApi from "../../api/UsersApi";
 import TokenService from "../../services/TokenService";
+import config from "../../config";
+import AppContext from "../../context/AppContext";
 
 const UserEditPage = () => {
+  const { contextState, dispatch } = useContext(AppContext);
+
   const navigate = useNavigate();
 
   const formik = useFormik({
@@ -70,6 +74,10 @@ const UserEditPage = () => {
       alert("Error");
     }
   }, [navigate]);
+
+  const handleClickExportAccountToFile = useCallback(async () => {
+    window.location = `${config.API_ADDRES}/users/profilefile/${contextState.user.id}`;
+  }, [contextState.user]);
 
   return (
     <div>
@@ -233,6 +241,11 @@ const UserEditPage = () => {
 
       <div>
         <button onClick={handleClickDeleteAccount}>Delete account</button>
+      </div>
+      <div>
+        <button onClick={handleClickExportAccountToFile}>
+          Export account tp file
+        </button>
       </div>
     </div>
   );

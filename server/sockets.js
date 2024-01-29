@@ -32,6 +32,7 @@ const sockets = (server) => {
       )?.userId;
 
       const message = {
+        _id: new ObjectId(),
         date: new Date(),
         text: messageData.text,
         userId: senderUserId,
@@ -61,6 +62,12 @@ const sockets = (server) => {
           },
         }
       );
+    });
+
+    socket.on("logout", () => {
+      console.log("logout");
+      const index = userIdsPerSockets.findIndex((x) => x.socket == socket);
+      userIdsPerSockets.splice(index, 1);
     });
 
     socket.on("disconnect", () => {

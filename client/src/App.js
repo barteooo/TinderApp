@@ -40,6 +40,7 @@ const authLoader = async () => {
 
 const logoutLoader = () => {
   TokenService.removeToken();
+  socket.emit("logout");
   return redirect("/");
 };
 
@@ -98,8 +99,6 @@ const App = () => {
         return;
       }
 
-      console.log(userResult.user);
-
       dispatch({ type: "SET_USER", payload: userResult.user });
 
       const matchedResult = await UsersApi.getMatchedUsers();
@@ -109,20 +108,31 @@ const App = () => {
       }
 
       dispatch({ type: "SET_MATCHED_USERS", payload: matchedResult.users });
-
-      socket.emit("user_data", { userId: userResult.user.id });
     };
 
     init();
   }, []);
 
-  const handleClick = () => {
-    socket.emit("message", { text: "Siema" });
+  useEffect(() => {
+    socket.on("connect", onConnect);
+
+    return () => {
+      socket.off("connect", onConnect);
+    };
+  }, []);
+
+  const onConnect = async () => {
+    console.log("connect");
+    const userResult = await UsersApi.getCurrentUser();
+    if (!userResult.success) {
+      return;
+    }
+
+    socket.emit("user_data", { userId: userResult.user.id });
   };
 
   return (
     <div>
-      <button onClick={handleClick}>Send message</button>
       <RouterProvider router={router} />
     </div>
   );

@@ -9,36 +9,40 @@ const UserChatPage = () => {
   const [messageText, setMessageText] = useState("");
   const { dispatch, contextState } = useContext(AppContext);
   const [userData, setUserData] = useState({});
+  const [chatId, setChatId] = useState("");
   const [messages, setMessages] = useState([]);
+  const [editMessageData, setEditMessageData] = useState({
+    text: "",
+    messageId: "",
+  });
 
   const naviagte = useNavigate();
   const params = useParams();
 
   useEffect(() => {
-    const initData = async () => {
-      const matchedUser = contextState.matchedUsers?.find(
-        (x) => x._id === params.id
-      );
-
-      if (!matchedUser) {
-        return;
-      }
-
-      setUserData({ ...matchedUser });
-
-      const result = await MessagesApi.getMessages(matchedUser._id);
-      if (!result.success) {
-        alert("Error getMessages");
-        return;
-      }
-
-      console.log(result.messages);
-
-      setMessages([...result.messages]);
-    };
-
     initData();
   }, [params]);
+
+  const initData = useCallback(async () => {
+    const matchedUser = contextState.matchedUsers?.find(
+      (x) => x._id === params.id
+    );
+
+    if (!matchedUser) {
+      return;
+    }
+
+    setUserData({ ...matchedUser });
+
+    const result = await MessagesApi.getMessages(matchedUser._id);
+    if (!result.success) {
+      alert("Error getMessages");
+      return;
+    }
+
+    setChatId(result.chatData._id);
+    setMessages([...result.chatData.messages]);
+  }, [contextState.matchedUsers, params.id]);
 
   useEffect(() => {
     socket.on("message", onMessage);
@@ -86,6 +90,50 @@ const UserChatPage = () => {
     socket.emit("message", { to: userData._id, text: messageText });
   }, [messageText, userData, messages]);
 
+  const handleClickEditMessage = useCallback((messageId, text) => {
+    setEditMessageData({
+      messageId,
+      text,
+    });
+  }, []);
+
+  const handleClickDeleteMessage = useCallback(
+    async (messageId) => {
+      const result = await MessagesApi.deleteMessage(chatId, messageId);
+      if (!result.success) {
+        alert("Błąd usuwania wiadomości");
+      }
+
+      initData();
+    },
+    [chatId, initData]
+  );
+
+  const handleClickSaveMessage = useCallback(async () => {
+    const result = await MessagesApi.updateMessage(
+      chatId,
+      editMessageData.messageId,
+      editMessageData.text
+    );
+    if (!result.success) {
+      alert("Błąd edycji wiadomości");
+    }
+
+    await initData();
+
+    setEditMessageData({
+      messageId: "",
+      text: "",
+    });
+  }, [chatId, editMessageData, initData]);
+
+  const handleClickDiscardEditMessage = useCallback(() => {
+    setEditMessageData({
+      messageId: "",
+      text: "",
+    });
+  }, []);
+
   return (
     <div>
       <div>
@@ -114,12 +162,49 @@ const UserChatPage = () => {
                   <p>{message.text}</p>
                 </div>
               );
+            } else if (editMessageData.messageId === message._id) {
+              return (
+                <div key={index} style={{ textAlign: "right" }}>
+                  <h6>{message.date}</h6>
+                  <textarea
+                    value={editMessageData.text}
+                    onChange={(e) =>
+                      setEditMessageData({
+                        ...editMessageData,
+                        text: e.target.value,
+                      })
+                    }
+                  ></textarea>
+                  <div>
+                    <button onClick={handleClickSaveMessage}>Save</button>
+                    <button onClick={handleClickDiscardEditMessage}>
+                      Discard
+                    </button>
+                  </div>
+                </div>
+              );
             }
 
             return (
               <div key={index} style={{ textAlign: "right" }}>
                 <h6>{message.date}</h6>
                 <p>{message.text}</p>
+                <div>
+                  <button
+                    onClick={() =>
+                      handleClickEditMessage(message._id, message.text)
+                    }
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleClickDeleteMessage(message._id);
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             );
           })}

@@ -1,5 +1,6 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
+const fs = require("fs");
 const { MongoClient, ObjectId } = require("mongodb");
 
 const authMiddleware = require("../middlewares/authMiddleware");
@@ -170,6 +171,34 @@ router.get("/matches", authMiddleware, async (req, res) => {
   } finally {
     await client.close();
   }
+});
+
+router.get("/profilefile/:id", async (req, res) => {
+  const { id } = req.params;
+
+  const client = new MongoClient(config.DATABASE_URL);
+  await client.connect();
+  const usersCollection = client.db(config.DATABASE_NAME).collection("users");
+
+  const user = await usersCollection.findOne({ _id: new ObjectId(id) });
+
+  const userData = {
+    name: user.name,
+    surname: user.surname,
+    gender: user.gender,
+    dateOfBirth: user.dateOfBirth,
+    interests: user.interests,
+    genderInterest: user.genderInterest,
+    about: user.about,
+    images: user.images,
+    filterByInterests: user.filterByInterests,
+  };
+
+  const filename = `userdata_${Date.now()}.json`;
+  const filePath = `./../temp/${filename}`;
+  fs.writeFile(filePath, JSON.stringify(userData), (fileData) => {
+    res.download(filePath);
+  });
 });
 
 router.put("/addmatch/:id", authMiddleware, async (req, res) => {

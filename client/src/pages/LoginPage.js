@@ -6,6 +6,7 @@ import UsersApi from "../api/UsersApi";
 import TokenService from "../services/TokenService";
 import { useCallback, useContext } from "react";
 import AppContext from "../context/AppContext";
+import { socket } from "../socket";
 
 const validationSchema = Yup.object({
   email: Yup.string().email().required(),
@@ -31,18 +32,18 @@ const LoginPage = () => {
       }
 
       TokenService.setToken(result.token);
-      initDataInContext();
+      initLoginData();
       navigate("/user");
     },
   });
 
-  const initDataInContext = useCallback(async () => {
-    const result = await UsersApi.getCurrentUser();
-    if (!result.success) {
+  const initLoginData = useCallback(async () => {
+    const userResult = await UsersApi.getCurrentUser();
+    if (!userResult.success) {
       return;
     }
 
-    dispatch({ type: "SET_USER", payload: result.user });
+    dispatch({ type: "SET_USER", payload: userResult.user });
 
     const matchedResult = await UsersApi.getMatchedUsers();
     if (!matchedResult) {
@@ -51,6 +52,8 @@ const LoginPage = () => {
     }
 
     dispatch({ type: "SET_MATCHED_USERS", payload: matchedResult.users });
+
+    socket.emit("user_data", { userId: userResult.user.id });
   }, [dispatch]);
 
   return (
