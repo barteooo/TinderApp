@@ -199,6 +199,30 @@ class UsersApi {
       success: true,
     };
   }
+
+  static async importProfileFile(file) {
+    const token = TokenService.getToken();
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch(`${config.API_ADDRES}/users/profilefile`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+    if (!res.ok) {
+      return {
+        success: false,
+      };
+    }
+
+    return {
+      success: true,
+    };
+  }
 }
 
 export default UsersApi;

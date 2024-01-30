@@ -1,5 +1,5 @@
 import { useFormik } from "formik";
-import { useCallback, useContext, useEffect } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import UsersApi from "../../api/UsersApi";
 import TokenService from "../../services/TokenService";
@@ -7,6 +7,7 @@ import config from "../../config";
 import AppContext from "../../context/AppContext";
 
 const UserEditPage = () => {
+  const [importFile, setImportFile] = useState(null);
   const { contextState, dispatch } = useContext(AppContext);
 
   const navigate = useNavigate();
@@ -32,24 +33,24 @@ const UserEditPage = () => {
   });
 
   useEffect(() => {
-    const getUserData = async () => {
-      const result = await UsersApi.getCurrentUser();
-      formik.setValues({
-        name: result.user.name,
-        surname: result.user.surname,
-        gender: result.user.gender ? result.user.gender : "men",
-        dateOfBirth: result.user.dateOfBirth,
-        interests: result.user.interests,
-        genderInterest: result.user.genderInterest
-          ? result.user.genderInterest
-          : "men",
-        about: result.user.about,
-        images: result.user.images.join("\n"),
-        filterByInterests: result.user.filterByInterests,
-      });
-    };
-
     getUserData();
+  }, []);
+
+  const getUserData = useCallback(async () => {
+    const result = await UsersApi.getCurrentUser();
+    formik.setValues({
+      name: result.user.name,
+      surname: result.user.surname,
+      gender: result.user.gender ? result.user.gender : "men",
+      dateOfBirth: result.user.dateOfBirth,
+      interests: result.user.interests,
+      genderInterest: result.user.genderInterest
+        ? result.user.genderInterest
+        : "men",
+      about: result.user.about,
+      images: result.user.images.join("\n"),
+      filterByInterests: result.user.filterByInterests,
+    });
   }, []);
 
   const handleChangeCheckbox = useCallback(
@@ -78,6 +79,24 @@ const UserEditPage = () => {
   const handleClickExportAccountToFile = useCallback(async () => {
     window.location = `${config.API_ADDRES}/users/profilefile/${contextState.user.id}`;
   }, [contextState.user]);
+
+  const handleSubmitImportAccountToFile = useCallback(
+    async (e) => {
+      e.preventDefault();
+
+      const result = await UsersApi.importProfileFile(importFile);
+      if (!result.success) {
+        alert("Błąd importu!");
+        return;
+      }
+
+      setImportFile(null);
+      e.target.reset();
+
+      getUserData();
+    },
+    [importFile, getUserData]
+  );
 
   return (
     <div>
@@ -174,12 +193,16 @@ const UserEditPage = () => {
               />
             </div>
             <div>
-              <label>swiming</label>
+              <label>swimming</label>
               <input
                 type="checkbox"
-                checked={formik.values.interests.includes("swiming")}
+                checked={formik.values.interests.includes("swimming")}
                 onChange={(e) =>
-                  handleChangeCheckbox("interests", e.target.checked, "swiming")
+                  handleChangeCheckbox(
+                    "interests",
+                    e.target.checked,
+                    "swimming"
+                  )
                 }
               />
             </div>
@@ -246,6 +269,18 @@ const UserEditPage = () => {
         <button onClick={handleClickExportAccountToFile}>
           Export account tp file
         </button>
+      </div>
+      <div>
+        <form onSubmit={handleSubmitImportAccountToFile}>
+          <input
+            type="file"
+            accept="application/json"
+            onChange={(e) => {
+              setImportFile(e.target.files?.[0]);
+            }}
+          />
+          <button type="submit">Import</button>
+        </form>
       </div>
     </div>
   );

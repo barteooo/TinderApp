@@ -1,12 +1,24 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const fs = require("fs");
+const path = require("path");
+const multer = require("multer");
 const { MongoClient, ObjectId } = require("mongodb");
 
 const authMiddleware = require("../middlewares/authMiddleware");
 const config = require("../config");
 
 const router = express.Router();
+
+const storage = multer.diskStorage({
+  destination: "./../temp/",
+  filename: (req, file, cb) => {
+    const extname = path.extname(file.originalname);
+    cb(null, `${file.fieldname}-${Date.now()}${extname}`);
+  },
+});
+
+const upload = multer({ storage });
 
 router.get("/one/:id", authMiddleware, async (req, res) => {
   const client = new MongoClient(config.DATABASE_URL);
@@ -177,29 +189,84 @@ router.get("/profilefile/:id", async (req, res) => {
   const { id } = req.params;
 
   const client = new MongoClient(config.DATABASE_URL);
-  await client.connect();
-  const usersCollection = client.db(config.DATABASE_NAME).collection("users");
 
-  const user = await usersCollection.findOne({ _id: new ObjectId(id) });
+  return new Promise((resolve, reject) => {
+    client
+      .connect()
+      .then((c) => {
+        const usersCollection = client
+          .db(config.DATABASE_NAME)
+          .collection("users");
 
-  const userData = {
-    name: user.name,
-    surname: user.surname,
-    gender: user.gender,
-    dateOfBirth: user.dateOfBirth,
-    interests: user.interests,
-    genderInterest: user.genderInterest,
-    about: user.about,
-    images: user.images,
-    filterByInterests: user.filterByInterests,
-  };
+        usersCollection.findOne({ _id: new ObjectId(id) }).then((user) => {
+          const userData = {
+            name: user.name,
+            surname: user.surname,
+            gender: user.gender,
+            dateOfBirth: user.dateOfBirth,
+            interests: user.interests,
+            genderInterest: user.genderInterest,
+            about: user.about,
+            images: user.images,
+            filterByInterests: user.filterByInterests,
+          };
 
-  const filename = `userdata_${Date.now()}.json`;
-  const filePath = `./../temp/${filename}`;
-  fs.writeFile(filePath, JSON.stringify(userData), (fileData) => {
-    res.download(filePath);
+          const filename = `userdata_${Date.now()}.json`;
+          const filePath = `./../temp/${filename}`;
+          fs.writeFile(filePath, JSON.stringify(userData), (fileData) => {
+            res.download(filePath);
+            resolve();
+          });
+        });
+      })
+      .catch(() => {
+        reject();
+      });
   });
 });
+
+router.post(
+  "/profilefile",
+  authMiddleware,
+  upload.single("file"),
+  (req, res) => {
+    const client = new MongoClient(config.DATABASE_URL);
+
+    return new Promise((resolve, reject) => {
+      console.log(req.file.path);
+
+      fs.readFile(req.file.path, "utf-8", (err, data) => {
+        if (err) {
+          console.error(err);
+          reject();
+          return;
+        }
+
+        const userData = JSON.parse(data);
+        resolve(userData);
+      });
+    }).then((userData) => {
+      const usersCollection = client
+        .db(config.DATABASE_NAME)
+        .collection("users");
+
+      usersCollection
+        .updateOne(
+          {
+            _id: req.user._id,
+          },
+          {
+            $set: {
+              ...userData,
+            },
+          }
+        )
+        .then(() => {
+          res.sendStatus(200);
+        });
+    });
+  }
+);
 
 router.put("/addmatch/:id", authMiddleware, async (req, res) => {
   const client = new MongoClient(config.DATABASE_URL);
