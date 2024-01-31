@@ -15,6 +15,9 @@ const UserChatPage = () => {
     text: "",
     messageId: "",
   });
+  const [stats, setStats] = useState({
+    numberOfMessagesLastDay: 0,
+  });
 
   const naviagte = useNavigate();
   const params = useParams();
@@ -42,6 +45,17 @@ const UserChatPage = () => {
 
     setChatId(result.chatData._id);
     setMessages([...result.chatData.messages]);
+
+    const statsResult = await MessagesApi.getStats(params.id);
+    if (!statsResult.success) {
+      alert("Error getStats");
+      return;
+    }
+
+    setStats({
+      ...stats,
+      numberOfMessagesLastDay: statsResult.stats.numberOfMessagesLastDay,
+    });
   }, [contextState.matchedUsers, params.id]);
 
   useEffect(() => {
@@ -147,6 +161,8 @@ const UserChatPage = () => {
         </h2>
         <button onClick={handleClickDeleteMatch}>Delete</button>
       </div>
+
+      <div>Number of messages last 24h: {stats.numberOfMessagesLastDay}</div>
 
       <div>
         <p>Messages</p>

@@ -62,7 +62,7 @@ router.get("/one/:id", authMiddleware, async (req, res) => {
   }
 });
 
-router.get("/current", authMiddleware, async (req, res) => {
+router.get("/current", authMiddleware, (req, res) => {
   const userDTO = {
     id: req.user._id,
     email: req.user.email,
@@ -164,28 +164,29 @@ router.get("/interest", authMiddleware, async (req, res) => {
   }
 });
 
-router.get("/matches", authMiddleware, async (req, res) => {
-  const client = new MongoClient(config.DATABASE_URL);
+router.get("/matches", authMiddleware, (req, res) => {
+  return new Promise((resolve, rejcet) => {
+    const client = new MongoClient(config.DATABASE_URL);
 
-  try {
     const usersCollection = client.db(config.DATABASE_NAME).collection("users");
-
-    const users = await usersCollection
+    usersCollection
       .find({
         _id: { $in: req.user.matches },
       })
-      .toArray();
-
-    res.json({ users });
-  } catch (error) {
-    console.error(error);
-    res.sendStatus(500);
-  } finally {
-    await client.close();
-  }
+      .toArray()
+      .then((users) => {
+        res.json({ users });
+        client.close();
+      })
+      .catch(() => {
+        client.close().then(() => {
+          res.sendStatus(500);
+        });
+      });
+  });
 });
 
-router.get("/profilefile/:id", async (req, res) => {
+router.get("/profilefile/:id", (req, res) => {
   const { id } = req.params;
 
   const client = new MongoClient(config.DATABASE_URL);
@@ -233,8 +234,6 @@ router.post(
     const client = new MongoClient(config.DATABASE_URL);
 
     return new Promise((resolve, reject) => {
-      console.log(req.file.path);
-
       fs.readFile(req.file.path, "utf-8", (err, data) => {
         if (err) {
           console.error(err);
@@ -470,7 +469,6 @@ router.delete("/current", authMiddleware, async (req, res) => {
       .db(config.DATABASE_NAME)
       .collection("users")
       .deleteOne({ _id: req.user._id });
-    console.log(result);
     res.sendStatus(200);
   } catch (error) {
     console.error(error);

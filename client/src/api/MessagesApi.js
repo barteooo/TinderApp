@@ -69,6 +69,28 @@ class MessagesApi {
       });
     });
   }
+
+  static async getStats(userId) {
+    const token = TokenService.getToken();
+
+    const res = await fetch(`${config.API_ADDRES}/messages/stats/${userId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) {
+      return {
+        success: false,
+      };
+    }
+
+    const data = await res.json();
+    return {
+      success: true,
+      stats: data.stats,
+    };
+  }
 }
 
 export default MessagesApi;

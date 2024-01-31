@@ -77,7 +77,6 @@ router.post(
 );
 
 router.post("/signin", validate(signinValidationSchema), async (req, res) => {
-  console.log("sigin endpoint");
   const client = new MongoClient(config.DATABASE_URL);
 
   try {
