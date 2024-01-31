@@ -1,9 +1,9 @@
 import { useContext } from "react";
 import UserPanelItem from "./UserPanelItem";
-import AppContext from "../context/AppContext";
+import appContext from "../../context/AppContext";
 
 const UserPanel = () => {
-  const { contextState } = useContext(AppContext);
+  const { contextState } = useContext(appContext);
 
   return (
     <div>

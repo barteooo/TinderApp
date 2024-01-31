@@ -214,7 +214,7 @@ router.get("/profilefile/:id", (req, res) => {
 
           const filename = `userdata_${Date.now()}.json`;
           const filePath = `./../temp/${filename}`;
-          fs.writeFile(filePath, JSON.stringify(userData), (fileData) => {
+          fs.writeFile(filePath, JSON.stringify(userData), () => {
             res.download(filePath);
             resolve();
           });
@@ -244,26 +244,31 @@ router.post(
         const userData = JSON.parse(data);
         resolve(userData);
       });
-    }).then((userData) => {
-      const usersCollection = client
-        .db(config.DATABASE_NAME)
-        .collection("users");
+    })
+      .then((userData) => {
+        const usersCollection = client
+          .db(config.DATABASE_NAME)
+          .collection("users");
 
-      usersCollection
-        .updateOne(
-          {
-            _id: req.user._id,
-          },
-          {
-            $set: {
-              ...userData,
+        usersCollection
+          .updateOne(
+            {
+              _id: req.user._id,
             },
-          }
-        )
-        .then(() => {
-          res.sendStatus(200);
-        });
-    });
+            {
+              $set: {
+                ...userData,
+              },
+            }
+          )
+          .then(() => {
+            res.sendStatus(200);
+          });
+      })
+      .catch((e) => {
+        console.log(e);
+        reject();
+      });
   }
 );
 

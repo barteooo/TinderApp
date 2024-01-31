@@ -4,6 +4,8 @@ import UsersApi from "../../api/UsersApi";
 import AppContext from "../../context/AppContext";
 import MessagesApi from "../../api/MessagesApi";
 import { socket } from "../../socket";
+import MatchedUserInfo from "../../components/Messages/MatchedUserInfo";
+import MessagesContainer from "../../components/Messages/MessagesContainer";
 
 const UserChatPage = () => {
   const [messageText, setMessageText] = useState("");
@@ -11,13 +13,6 @@ const UserChatPage = () => {
   const [userData, setUserData] = useState({});
   const [chatId, setChatId] = useState("");
   const [messages, setMessages] = useState([]);
-  const [editMessageData, setEditMessageData] = useState({
-    text: "",
-    messageId: "",
-  });
-  const [stats, setStats] = useState({
-    numberOfMessagesLastDay: 0,
-  });
 
   const naviagte = useNavigate();
   const params = useParams();
@@ -46,16 +41,16 @@ const UserChatPage = () => {
     setChatId(result.chatData._id);
     setMessages([...result.chatData.messages]);
 
-    const statsResult = await MessagesApi.getStats(params.id);
-    if (!statsResult.success) {
-      alert("Error getStats");
-      return;
-    }
+    // const statsResult = await MessagesApi.getStats(params.id);
+    // if (!statsResult.success) {
+    //   alert("Error getStats");
+    //   return;
+    // }
 
-    setStats({
-      ...stats,
-      numberOfMessagesLastDay: statsResult.stats.numberOfMessagesLastDay,
-    });
+    // setStats({
+    //   ...stats,
+    //   numberOfMessagesLastDay: statsResult.stats.numberOfMessagesLastDay,
+    // });
   }, [contextState.matchedUsers, params.id]);
 
   useEffect(() => {
@@ -67,7 +62,6 @@ const UserChatPage = () => {
   }, []);
 
   const onMessage = (data) => {
-    console.log("message", data);
     setMessages((s) => [...s, data]);
   };
 
@@ -104,127 +98,20 @@ const UserChatPage = () => {
     socket.emit("message", { to: userData._id, text: messageText });
   }, [messageText, userData, messages]);
 
-  const handleClickEditMessage = useCallback((messageId, text) => {
-    setEditMessageData({
-      messageId,
-      text,
-    });
-  }, []);
-
-  const handleClickDeleteMessage = useCallback(
-    async (messageId) => {
-      const result = await MessagesApi.deleteMessage(chatId, messageId);
-      if (!result.success) {
-        alert("Błąd usuwania wiadomości");
-      }
-
-      initData();
-    },
-    [chatId, initData]
-  );
-
-  const handleClickSaveMessage = useCallback(async () => {
-    const result = await MessagesApi.updateMessage(
-      chatId,
-      editMessageData.messageId,
-      editMessageData.text
-    );
-    if (!result.success) {
-      alert("Błąd edycji wiadomości");
-    }
-
-    await initData();
-
-    setEditMessageData({
-      messageId: "",
-      text: "",
-    });
-  }, [chatId, editMessageData, initData]);
-
-  const handleClickDiscardEditMessage = useCallback(() => {
-    setEditMessageData({
-      messageId: "",
-      text: "",
-    });
-  }, []);
-
   return (
     <div>
-      <div>
-        <img
-          style={{ width: 100, height: "auto" }}
-          src={userData?.images?.[0]}
-          alt="user"
-        />
-        <h2>
-          {userData.name} {userData.surname}
-        </h2>
-        <button onClick={handleClickDeleteMatch}>Delete</button>
-      </div>
-
-      <div>Number of messages last 24h: {stats.numberOfMessagesLastDay}</div>
-
+      <MatchedUserInfo
+        userData={userData}
+        handleClickDeleteMatch={handleClickDeleteMatch}
+      />
       <div>
         <p>Messages</p>
-        <div style={{ width: 300 }}>
-          {messages.map((message, index) => {
-            if (message.userId === userData._id) {
-              return (
-                <div
-                  key={index}
-                  style={{ textAlign: "left", backgroundColor: "silver" }}
-                >
-                  <h6>{message.date}</h6>
-                  <p>{message.text}</p>
-                </div>
-              );
-            } else if (editMessageData.messageId === message._id) {
-              return (
-                <div key={index} style={{ textAlign: "right" }}>
-                  <h6>{message.date}</h6>
-                  <textarea
-                    value={editMessageData.text}
-                    onChange={(e) =>
-                      setEditMessageData({
-                        ...editMessageData,
-                        text: e.target.value,
-                      })
-                    }
-                  ></textarea>
-                  <div>
-                    <button onClick={handleClickSaveMessage}>Save</button>
-                    <button onClick={handleClickDiscardEditMessage}>
-                      Discard
-                    </button>
-                  </div>
-                </div>
-              );
-            }
-
-            return (
-              <div key={index} style={{ textAlign: "right" }}>
-                <h6>{message.date}</h6>
-                <p>{message.text}</p>
-                <div>
-                  <button
-                    onClick={() =>
-                      handleClickEditMessage(message._id, message.text)
-                    }
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleClickDeleteMessage(message._id);
-                    }}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <MessagesContainer
+          chatId={chatId}
+          userData={userData}
+          messages={messages}
+          refreshData={initData}
+        />
         <div>
           <textarea
             value={messageText}

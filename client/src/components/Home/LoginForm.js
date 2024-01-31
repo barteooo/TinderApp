@@ -1,39 +1,63 @@
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import AuthApi from "../api/AuthApi";
 import { useNavigate } from "react-router-dom";
+import AuthApi from "../../api/AuthApi";
+import UsersApi from "../../api/UsersApi";
+import TokenService from "../../services/TokenService";
+import { useCallback, useContext } from "react";
+import AppContext from "../../context/AppContext";
+import { socket } from "../../socket";
 
-const validationSchema = Yup.object({
-  email: Yup.string().email().required(),
-  password: Yup.string().required(),
-  reppassword: Yup.string().required(),
-});
+const LoginForm = () => {
+  const { dispatch } = useContext(AppContext);
 
-const RegisterPage = () => {
   const navigate = useNavigate();
+
+  const validationSchema = Yup.object({
+    email: Yup.string().email().required(),
+    password: Yup.string().required(),
+  });
 
   const formik = useFormik({
     initialValues: {
       email: "",
       password: "",
-      reppassword: "",
     },
     validationSchema,
     onSubmit: async (values, helpers) => {
-      const result = await AuthApi.register(values);
+      const result = await AuthApi.signin(values);
       if (!result.success) {
         helpers.setErrors({ error: result.message });
         return;
       }
 
-      navigate("/login");
+      TokenService.setToken(result.token);
+      initLoginData();
+      navigate("/user");
     },
   });
 
+  const initLoginData = useCallback(async () => {
+    const userResult = await UsersApi.getCurrentUser();
+    if (!userResult.success) {
+      return;
+    }
+
+    dispatch({ type: "SET_USER", payload: userResult.user });
+
+    const matchedResult = await UsersApi.getMatchedUsers();
+    if (!matchedResult) {
+      alert("Error getMatchedUsers");
+      return;
+    }
+
+    dispatch({ type: "SET_MATCHED_USERS", payload: matchedResult.users });
+
+    socket.emit("user_data", { userId: userResult.user.id });
+  }, [dispatch]);
+
   return (
     <div>
-      <h1>Register page</h1>
-
       <div>
         <form onSubmit={formik.handleSubmit}>
           <div>
@@ -59,18 +83,7 @@ const RegisterPage = () => {
             ) : null}
           </div>
           <div>
-            <label>Repeat password</label>
-            <input
-              name="reppassword"
-              type="password"
-              {...formik.getFieldProps("reppassword")}
-            />
-            {formik.touched.reppassword && formik.errors.reppassword ? (
-              <p>{formik.errors.reppassword}</p>
-            ) : null}
-          </div>
-          <div>
-            <button type="submit">Register</button>
+            <button type="submit">Login</button>
           </div>
           {formik.errors.error ? <p>{formik.errors.error}</p> : null}
         </form>
@@ -79,4 +92,4 @@ const RegisterPage = () => {
   );
 };
 
-export default RegisterPage;
+export default LoginForm;

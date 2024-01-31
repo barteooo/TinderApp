@@ -5,9 +5,9 @@ import {
 } from "react-router-dom";
 
 import "./App.css";
-import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
+import HomePage from "./pages/Home/HomePage";
+import LoginPage from "./pages/Home/LoginPage";
+import RegisterPage from "./pages/Home/RegisterPage";
 import UserEditPage from "./pages/UserPages/UserEditPage";
 import TokenService from "./services/TokenService";
 import AuthApi from "./api/AuthApi";
