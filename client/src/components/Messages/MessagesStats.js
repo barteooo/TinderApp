@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import MessagesApi from "../../api/MessagesApi";
 
-const MessagesStats = ({ matchedUserId }) => {
+const MessagesStats = ({ matchedUserId, messages }) => {
   const [stats, setStats] = useState({
     numberOfMessagesLastDay: 0,
   });
@@ -10,7 +10,7 @@ const MessagesStats = ({ matchedUserId }) => {
     if (matchedUserId) {
       initMessagesStats();
     }
-  }, [matchedUserId]);
+  }, [matchedUserId, messages]);
 
   const initMessagesStats = async () => {
     const statsResult = await MessagesApi.getStats(matchedUserId);
@@ -25,7 +25,9 @@ const MessagesStats = ({ matchedUserId }) => {
   };
 
   return (
-    <div>Number of messages last 24h: {stats.numberOfMessagesLastDay}</div>
+    <div className="messages-stats-container">
+      Number of messages last 24h: {stats.numberOfMessagesLastDay}
+    </div>
   );
 };
 

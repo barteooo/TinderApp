@@ -164,6 +164,7 @@ router.get("/interest", authMiddleware, async (req, res) => {
   }
 });
 
+// promise
 router.get("/matches", authMiddleware, (req, res) => {
   return new Promise((resolve, rejcet) => {
     const client = new MongoClient(config.DATABASE_URL);
@@ -186,6 +187,7 @@ router.get("/matches", authMiddleware, (req, res) => {
   });
 });
 
+//promise
 router.get("/profilefile/:id", (req, res) => {
   const { id } = req.params;
 
@@ -199,26 +201,31 @@ router.get("/profilefile/:id", (req, res) => {
           .db(config.DATABASE_NAME)
           .collection("users");
 
-        usersCollection.findOne({ _id: new ObjectId(id) }).then((user) => {
-          const userData = {
-            name: user.name,
-            surname: user.surname,
-            gender: user.gender,
-            dateOfBirth: user.dateOfBirth,
-            interests: user.interests,
-            genderInterest: user.genderInterest,
-            about: user.about,
-            images: user.images,
-            filterByInterests: user.filterByInterests,
-          };
+        usersCollection
+          .findOne({ _id: new ObjectId(id) })
+          .then((user) => {
+            const userData = {
+              name: user.name,
+              surname: user.surname,
+              gender: user.gender,
+              dateOfBirth: user.dateOfBirth,
+              interests: user.interests,
+              genderInterest: user.genderInterest,
+              about: user.about,
+              images: user.images,
+              filterByInterests: user.filterByInterests,
+            };
 
-          const filename = `userdata_${Date.now()}.json`;
-          const filePath = `./../temp/${filename}`;
-          fs.writeFile(filePath, JSON.stringify(userData), () => {
-            res.download(filePath);
+            const filename = `userdata_${Date.now()}.json`;
+            const filePath = `./../temp/${filename}`;
+            fs.writeFile(filePath, JSON.stringify(userData), () => {
+              res.download(filePath);
+              resolve();
+            });
+          })
+          .catch(() => {
             resolve();
           });
-        });
       })
       .catch(() => {
         reject();
@@ -226,6 +233,7 @@ router.get("/profilefile/:id", (req, res) => {
   });
 });
 
+//promise
 router.post(
   "/profilefile",
   authMiddleware,
@@ -263,6 +271,10 @@ router.post(
           )
           .then(() => {
             res.sendStatus(200);
+          })
+          .catch((e) => {
+            console.log(e);
+            reject();
           });
       })
       .catch((e) => {

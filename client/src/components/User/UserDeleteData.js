@@ -16,7 +16,9 @@ const UserDeleteData = () => {
   }, [navigate]);
   return (
     <div>
-      <button onClick={handleClickDeleteAccount}>Delete account</button>
+      <button className="gray-button" onClick={handleClickDeleteAccount}>
+        Delete account
+      </button>
     </div>
   );
 };

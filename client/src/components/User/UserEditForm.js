@@ -1,14 +1,17 @@
 import { useFormik } from "formik";
 import UsersApi from "../../api/UsersApi";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useContext } from "react";
 import UserImportData from "./UserImportData";
 import UserExportData from "./UserExportData";
 import UserDeleteData from "./UserDeleteData";
+import appContext from "../../context/AppContext";
 
 const UserEditForm = () => {
   useEffect(() => {
     getUserData();
   }, []);
+
+  const { dispatch, contextState } = useContext(appContext);
 
   const formik = useFormik({
     initialValues: {
@@ -26,6 +29,11 @@ const UserEditForm = () => {
       const userData = { ...values };
       userData.images = userData.images ? userData.images.split("\n") : [];
       await UsersApi.updateCurrent(userData);
+      dispatch({
+        type: "SET_USER",
+        payload: { ...contextState.user, ...values },
+      });
+
       getUserData();
       return;
     },
@@ -62,39 +70,58 @@ const UserEditForm = () => {
   );
 
   return (
-    <div>
-      <form onSubmit={formik.handleSubmit}>
-        <div>
-          <label>Name</label>
-          <input name="name" type="text" {...formik.getFieldProps("name")} />
+    <div className="form-container">
+      <h1 className="form-caption">User</h1>
+      <form className="form" onSubmit={formik.handleSubmit}>
+        <div className="form-item">
+          <label className="form-label">Name</label>
+          <input
+            className="input"
+            name="name"
+            type="text"
+            {...formik.getFieldProps("name")}
+          />
           {formik.touched.name && formik.errors.name ? (
-            <div>{formik.errors.name}</div>
+            <div className="form-alert form-alert-danger">
+              {formik.errors.name}
+            </div>
           ) : null}
         </div>
-        <div>
-          <label>Surname</label>
+        <div className="form-item">
+          <label className="form-label">Surname</label>
           <input
+            className="input"
             name="surname"
             type="text"
             {...formik.getFieldProps("surname")}
           />
-          {formik.touched.surname && formik.errors.surname ? (
-            <div>{formik.errors.surname}</div>
-          ) : null}
         </div>
-        <div>
-          <label>gender</label>
-          <select name="gender" type="text" {...formik.getFieldProps("gender")}>
+        {formik.touched.surname && formik.errors.surname ? (
+          <div className="form-alert form-alert-danger">
+            {formik.errors.surname}
+          </div>
+        ) : null}
+        <div className="form-item">
+          <label className="form-label">gender</label>
+          <select
+            className="input"
+            name="gender"
+            type="text"
+            {...formik.getFieldProps("gender")}
+          >
             <option value="men">men</option>
             <option value="woman">woman</option>
           </select>
-          {formik.touched.gender && formik.errors.gender ? (
-            <div>{formik.errors.gender}</div>
-          ) : null}
         </div>
-        <div>
-          <label>Date of birth</label>
+        {formik.touched.gender && formik.errors.gender ? (
+          <div className="form-alert form-alert-danger">
+            {formik.errors.gender}
+          </div>
+        ) : null}
+        <div className="form-item">
+          <label className="form-label">Date of birth</label>
           <input
+            className="input"
             name="dateOfBirth"
             type="date"
             {...formik.getFieldProps("dateOfBirth")}
@@ -103,128 +130,136 @@ const UserEditForm = () => {
             <div>{formik.errors.dateOfBirth}</div>
           ) : null}
         </div>
-        <div>
-          <label>Interest</label>
-          <div>
-            <div>
-              <label>football</label>
-              <input
-                type="checkbox"
-                checked={formik.values.interests.includes("football")}
-                onChange={(e) =>
-                  handleChangeCheckbox(
-                    "interests",
-                    e.target.checked,
-                    "football"
-                  )
-                }
-              />
-            </div>
-            <div>
-              <label>bike</label>
-              <input
-                type="checkbox"
-                checked={formik.values.interests.includes("bike")}
-                onChange={(e) =>
-                  handleChangeCheckbox("interests", e.target.checked, "bike")
-                }
-              />
-            </div>
-            <div>
-              <label>netflix</label>
-              <input
-                type="checkbox"
-                checked={formik.values.interests.includes("netflix")}
-                onChange={(e) =>
-                  handleChangeCheckbox("interests", e.target.checked, "netflix")
-                }
-              />
-            </div>
+        <div className="form-checkbox-container">
+          <p className="form-checkbox-container-caption">Interest</p>
+          <div className="form-item-checkbox">
+            <label className="form-label-checkbox">football</label>
+            <input
+              type="checkbox"
+              checked={formik.values.interests.includes("football")}
+              onChange={(e) =>
+                handleChangeCheckbox("interests", e.target.checked, "football")
+              }
+            />
           </div>
-
-          <div>
-            <div>
-              <label>skating</label>
-              <input
-                type="checkbox"
-                checked={formik.values.interests.includes("skating")}
-                onChange={(e) =>
-                  handleChangeCheckbox("interests", e.target.checked, "skating")
-                }
-              />
-            </div>
-            <div>
-              <label>swimming</label>
-              <input
-                type="checkbox"
-                checked={formik.values.interests.includes("swimming")}
-                onChange={(e) =>
-                  handleChangeCheckbox(
-                    "interests",
-                    e.target.checked,
-                    "swimming"
-                  )
-                }
-              />
-            </div>
+          <div className="form-item-checkbox">
+            <label className="form-label-checkbox">bike</label>
+            <input
+              type="checkbox"
+              checked={formik.values.interests.includes("bike")}
+              onChange={(e) =>
+                handleChangeCheckbox("interests", e.target.checked, "bike")
+              }
+            />
+          </div>
+          <div className="form-item-checkbox">
+            <label className="form-label-checkbox">netflix</label>
+            <input
+              type="checkbox"
+              checked={formik.values.interests.includes("netflix")}
+              onChange={(e) =>
+                handleChangeCheckbox("interests", e.target.checked, "netflix")
+              }
+            />
+          </div>
+          <div className="form-item-checkbox">
+            <label className="form-label-checkbox">skating</label>
+            <input
+              type="checkbox"
+              checked={formik.values.interests.includes("skating")}
+              onChange={(e) =>
+                handleChangeCheckbox("interests", e.target.checked, "skating")
+              }
+            />
+          </div>
+          <div className="form-item-checkbox">
+            <label className="form-label-checkbox">swimming</label>
+            <input
+              type="checkbox"
+              checked={formik.values.interests.includes("swimming")}
+              onChange={(e) =>
+                handleChangeCheckbox("interests", e.target.checked, "swimming")
+              }
+            />
           </div>
 
           {formik.touched.interest && formik.errors.interest ? (
-            <div>{formik.errors.interest}</div>
+            <div className="form-alert form-alert-danger">
+              {formik.errors.interest}
+            </div>
           ) : null}
         </div>
-        <div>
-          <label>About</label>
+        <div className="form-item">
+          <label className="form-label">About</label>
           <textarea
+            className="input"
             name="about"
             type="text"
             {...formik.getFieldProps("about")}
           ></textarea>
-          {formik.touched.about && formik.errors.about ? (
-            <div>{formik.errors.about}</div>
-          ) : null}
         </div>
-        <div>
-          <label>Images</label>
-          <textarea {...formik.getFieldProps("images")}></textarea>
+        {formik.touched.about && formik.errors.about ? (
+          <div className="form-alert form-alert-danger">
+            {formik.errors.about}
+          </div>
+        ) : null}
+        <div className="form-item">
+          <label className="form-label">Images</label>
+          <textarea
+            className="input"
+            {...formik.getFieldProps("images")}
+          ></textarea>
           {formik.touched.images && formik.errors.images ? (
             <div>{formik.errors.images}</div>
           ) : null}
         </div>
-        <div>
-          <div>
-            <label>Gender interest</label>
-            <select
-              name="genderInterest"
-              type="text"
-              {...formik.getFieldProps("genderInterest")}
-            >
-              <option value="men">men</option>
-              <option value="woman">woman</option>
-            </select>
-            {formik.touched.genderInterest && formik.errors.genderInterest ? (
-              <div>{formik.errors.genderInterest}</div>
-            ) : null}
+        <div className="form-item">
+          <label className="form-label">Gender interest</label>
+          <select
+            className="input"
+            name="genderInterest"
+            type="text"
+            {...formik.getFieldProps("genderInterest")}
+          >
+            <option value="men">men</option>
+            <option value="woman">woman</option>
+          </select>
+        </div>
+        {formik.touched.genderInterest && formik.errors.genderInterest ? (
+          <div className="form-alert form-alert-danger">
+            {formik.errors.genderInterest}
+          </div>
+        ) : null}
+        <div className="form-checkbox-container ">
+          <div className="form-item-checkbox">
+            <label className="form-label-checkbox">Filter by interests</label>
+            <input
+              type="checkbox"
+              checked={formik.values.filterByInterests}
+              value={formik.values.filterByInterests}
+              onChange={(e) => {
+                formik.setFieldValue("filterByInterests", e.target.checked);
+              }}
+            />
           </div>
         </div>
-        <div>
-          <label>Filter by interests</label>
-          <input
-            type="checkbox"
-            checked={formik.values.filterByInterests}
-            value={formik.values.filterByInterests}
-            onChange={(e) => {
-              formik.setFieldValue("filterByInterests", e.target.checked);
-            }}
-          />
-        </div>
-        <div>
-          <button type="submit">Update</button>
+        <div className="form-item form-item-center">
+          <button
+            className="primary-button"
+            style={{ marginTop: 20 }}
+            type="submit"
+          >
+            Update
+          </button>
         </div>
       </form>
-      <UserImportData getUserData={getUserData} />
-      <UserExportData />
-      <UserDeleteData />
+
+      <div className="action-buttons-contaier">
+        <h1>User actions</h1>
+        <UserExportData />
+        <UserImportData getUserData={getUserData} />
+        <UserDeleteData />
+      </div>
     </div>
   );
 };

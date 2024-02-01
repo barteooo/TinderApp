@@ -41,7 +41,7 @@ const authLoader = async () => {
 const logoutLoader = () => {
   TokenService.removeToken();
   socket.emit("logout");
-  return redirect("/");
+  return redirect("/login");
 };
 
 const router = createBrowserRouter([
@@ -52,7 +52,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        Component: HomePage,
+        Component: LoginPage,
       },
       {
         path: "/login",

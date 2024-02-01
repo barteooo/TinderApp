@@ -9,7 +9,7 @@ const UserCard = ({ user, onSwipe }) => {
           backgroundImage: `url(${user.images[0]})`,
         }}
       >
-        <div>
+        <div className="usercard-info">
           <h3>{user.name}</h3>
           <p>{user.about}</p>
           {

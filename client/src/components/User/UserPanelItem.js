@@ -8,13 +8,14 @@ const UserPanelItem = ({ user }) => {
   };
 
   return (
-    <div onClick={handleClickMain}>
+    <div className="user-panel-item">
       <img
-        style={{ width: 100, height: "auto" }}
+        className="user-panel-item-img"
         src={user.images[0]}
         alt="user"
+        onClick={handleClickMain}
       />
-      <p>{user.name}</p>
+      <p className="user-panel-item-caption">{user.name}</p>
     </div>
   );
 };

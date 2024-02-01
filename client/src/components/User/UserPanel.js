@@ -6,15 +6,10 @@ const UserPanel = () => {
   const { contextState } = useContext(appContext);
 
   return (
-    <div>
-      <div>
-        {contextState.user.name} {contextState.user.surname}
-      </div>
-      <div>
-        {contextState.matchedUsers.map((user, index) => {
-          return <UserPanelItem key={index} user={user} />;
-        })}
-      </div>
+    <div className="user-panel-container">
+      {contextState.matchedUsers.map((user, index) => {
+        return <UserPanelItem key={index} user={user} />;
+      })}
     </div>
   );
 };

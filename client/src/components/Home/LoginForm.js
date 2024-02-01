@@ -56,37 +56,58 @@ const LoginForm = () => {
     socket.emit("user_data", { userId: userResult.user.id });
   }, [dispatch]);
 
+  const handleClickNavToRegister = useCallback(() => {
+    navigate("/register");
+  }, [navigate]);
+
   return (
-    <div>
-      <div>
-        <form onSubmit={formik.handleSubmit}>
-          <div>
-            <label>Email</label>
-            <input
-              name="email"
-              type="email"
-              {...formik.getFieldProps("email")}
-            />
-            {formik.touched.email && formik.errors.email ? (
-              <p>{formik.errors.email}</p>
-            ) : null}
+    <div className="form-container">
+      <h1 className="form-caption">Login</h1>
+      <form className="form" onSubmit={formik.handleSubmit}>
+        <div className="form-item form-item-row">
+          <input
+            placeholder="Email..."
+            className="input"
+            name="email"
+            type="email"
+            {...formik.getFieldProps("email")}
+          />
+        </div>
+        {formik.touched.email && formik.errors.email ? (
+          <div className="form-alert form-alert-danger">
+            {formik.errors.email}
           </div>
-          <div>
-            <label>Password</label>
-            <input
-              name="password"
-              type="password"
-              {...formik.getFieldProps("password")}
-            />
-            {formik.touched.password && formik.errors.password ? (
-              <p>{formik.errors.password}</p>
-            ) : null}
+        ) : null}
+        <div className="form-item form-item-row">
+          <input
+            className="input"
+            placeholder="Password..."
+            name="password"
+            type="password"
+            {...formik.getFieldProps("password")}
+          />
+        </div>
+        {formik.touched.password && formik.errors.password ? (
+          <div className="form-alert form-alert-danger">
+            {formik.errors.password}
           </div>
-          <div>
-            <button type="submit">Login</button>
+        ) : null}
+        <div className="form-item form-item-center">
+          <button className="primary-button" type="submit">
+            Login
+          </button>
+        </div>
+
+        {formik.errors.error ? (
+          <div className="form-alert form-alert-danger">
+            {formik.errors.error}
           </div>
-          {formik.errors.error ? <p>{formik.errors.error}</p> : null}
-        </form>
+        ) : null}
+      </form>
+      <div className="form-item form-item-center">
+        <button className="primary-button" onClick={handleClickNavToRegister}>
+          Register
+        </button>
       </div>
     </div>
   );

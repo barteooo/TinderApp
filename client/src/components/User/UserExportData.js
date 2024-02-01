@@ -11,8 +11,11 @@ const UserExportData = () => {
   return (
     <div>
       <div>
-        <button onClick={handleClickExportAccountToFile}>
-          Export account tp file
+        <button
+          className="gray-button"
+          onClick={handleClickExportAccountToFile}
+        >
+          Export account to file
         </button>
       </div>
     </div>

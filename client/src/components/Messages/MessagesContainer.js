@@ -1,7 +1,9 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import MessagesApi from "../../api/MessagesApi";
 
 const MessagesContainer = ({ chatId, userData, messages, refreshData }) => {
+  const messagesContainerRef = useRef();
+
   const [editMessageData, setEditMessageData] = useState({
     text: "",
     messageId: "",
@@ -13,6 +15,13 @@ const MessagesContainer = ({ chatId, userData, messages, refreshData }) => {
       text,
     });
   }, []);
+
+  useEffect(() => {
+    messagesContainerRef.current.scrollTo(
+      0,
+      messagesContainerRef.current.scrollHeight
+    );
+  }, [messages]);
 
   const handleClickSaveMessage = useCallback(async () => {
     const result = await MessagesApi.updateMessage(
@@ -52,66 +61,88 @@ const MessagesContainer = ({ chatId, userData, messages, refreshData }) => {
   );
 
   return (
-    <div>
-      <div style={{ width: 300 }}>
-        {messages.map((message, index) => {
-          if (message.userId === userData._id) {
-            return (
-              <div
-                key={index}
-                style={{ textAlign: "left", backgroundColor: "silver" }}
-              >
-                <h6>{message.date}</h6>
-                <p>{message.text}</p>
-              </div>
-            );
-          } else if (editMessageData.messageId === message._id) {
-            return (
-              <div key={index} style={{ textAlign: "right" }}>
-                <h6>{message.date}</h6>
-                <textarea
-                  value={editMessageData.text}
-                  onChange={(e) =>
-                    setEditMessageData((s) => ({
-                      ...s,
-                      text: e.target.value,
-                    }))
-                  }
-                ></textarea>
-                <div>
-                  <button onClick={handleClickSaveMessage}>Save</button>
-                  <button onClick={handleClickDiscardEditMessage}>
-                    Discard
-                  </button>
-                </div>
-              </div>
-            );
-          }
-
+    <div ref={messagesContainerRef} className="messages-container">
+      {messages.map((message, index) => {
+        if (message.userId === userData._id) {
           return (
-            <div key={index} style={{ textAlign: "right" }}>
-              <h6>{message.date}</h6>
+            <div
+              className="message-container message-alien"
+              key={index}
+              style={{ textAlign: "left" }}
+            >
+              <h6 className="merssage-date">
+                {new Date(message.date).toLocaleString()}
+              </h6>
               <p>{message.text}</p>
+            </div>
+          );
+        } else if (editMessageData.messageId === message._id) {
+          return (
+            <div className="message-container message-me" key={index}>
+              <h6 className="merssage-date">
+                {new Date(message.date).toLocaleString()}
+              </h6>
+              <textarea
+                className="input"
+                value={editMessageData.text}
+                onChange={(e) =>
+                  setEditMessageData((s) => ({
+                    ...s,
+                    text: e.target.value,
+                  }))
+                }
+              ></textarea>
               <div>
                 <button
-                  onClick={() =>
-                    handleClickEditMessage(message._id, message.text)
-                  }
+                  style={{ margin: 20 }}
+                  className="success-button"
+                  onClick={handleClickSaveMessage}
                 >
-                  Edit
+                  Save
                 </button>
                 <button
-                  onClick={() => {
-                    handleClickDeleteMessage(message._id);
-                  }}
+                  className="danger-button"
+                  onClick={handleClickDiscardEditMessage}
                 >
-                  Delete
+                  Discard
                 </button>
               </div>
             </div>
           );
-        })}
-      </div>
+        }
+
+        return (
+          <div
+            key={index}
+            className="message-container message-me"
+            style={{ textAlign: "right" }}
+          >
+            <h6 className="merssage-date">
+              {new Date(message.date).toLocaleString()}
+            </h6>
+            <p>{message.text}</p>
+            <div>
+              <button
+                style={{ marginRight: 20 }}
+                className="warning-button"
+                onClick={() =>
+                  handleClickEditMessage(message._id, message.text)
+                }
+              >
+                Edit
+              </button>
+              <button
+                className="danger-button"
+                onClick={() => {
+                  handleClickDeleteMessage(message._id);
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };

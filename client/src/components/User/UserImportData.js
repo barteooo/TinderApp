@@ -38,7 +38,9 @@ const UserImportData = ({ getUserData }) => {
               setImportFile(e.target.files?.[0]);
             }}
           />
-          <button type="submit">Import</button>
+          <button className="gray-button" type="submit">
+            Import
+          </button>
         </form>
       </div>
     </div>

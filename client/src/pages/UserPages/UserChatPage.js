@@ -23,7 +23,7 @@ const UserChatPage = () => {
 
   const initData = useCallback(async () => {
     const matchedUser = contextState.matchedUsers?.find(
-      (x) => x._id === params.id
+      (x) => x?._id === params.id
     );
 
     if (!matchedUser) {
@@ -38,8 +38,8 @@ const UserChatPage = () => {
       return;
     }
 
-    setChatId(result.chatData._id);
-    setMessages([...result.chatData.messages]);
+    setChatId(result.chatData?._id);
+    setMessages([...result?.chatData?.messages]);
 
     // const statsResult = await MessagesApi.getStats(params.id);
     // if (!statsResult.success) {
@@ -94,6 +94,7 @@ const UserChatPage = () => {
       userId: "",
     };
     setMessages([...messages, messageData]);
+    setMessageText("");
 
     socket.emit("message", { to: userData._id, text: messageText });
   }, [messageText, userData, messages]);
@@ -103,21 +104,24 @@ const UserChatPage = () => {
       <MatchedUserInfo
         userData={userData}
         handleClickDeleteMatch={handleClickDeleteMatch}
+        messages={messages}
       />
       <div>
-        <p>Messages</p>
         <MessagesContainer
           chatId={chatId}
           userData={userData}
           messages={messages}
           refreshData={initData}
         />
-        <div>
+        <div className="send-message-container">
           <textarea
+            className="input"
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
           ></textarea>
-          <button onClick={handleClickSend}>Send</button>
+          <button className="primary-button" onClick={handleClickSend}>
+            Send
+          </button>
         </div>
       </div>
     </div>

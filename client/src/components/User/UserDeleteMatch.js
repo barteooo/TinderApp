@@ -1,5 +1,9 @@
 const UserDeleteMatch = ({ handleClickDeleteMatch }) => {
-  return <button onClick={handleClickDeleteMatch}>Delete</button>;
+  return (
+    <button className="primary-button" onClick={handleClickDeleteMatch}>
+      Delete
+    </button>
+  );
 };
 
 export default UserDeleteMatch;

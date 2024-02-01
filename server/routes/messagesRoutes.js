@@ -84,38 +84,41 @@ router.put("/", (req, res) => {
       .db(config.DATABASE_NAME)
       .collection("messages");
 
-    messagesCollection.findOne({ _id: new ObjectId(chatId) }).then((chat) => {
-      const index = chat.messages.findIndex(
-        (x) => x._id.toString() === messageId
-      );
-      if (index >= 0) {
-        chat.messages[index].date = new Date();
-        chat.messages[index].text = text;
-      }
+    messagesCollection
+      .findOne({ _id: new ObjectId(chatId) })
+      .then((chat) => {
+        const index = chat.messages.findIndex(
+          (x) => x._id.toString() === messageId
+        );
+        if (index >= 0) {
+          chat.messages[index].date = new Date();
+          chat.messages[index].text = text;
+        }
 
-      messagesCollection
-        .updateOne(
-          { _id: new ObjectId(chatId) },
-          {
-            $set: {
-              messages: [...chat.messages],
-            },
-          }
-        )
-        .then(() => {
-          res.sendStatus(200);
-          client.close().then(() => {
-            resolve();
+        messagesCollection
+          .updateOne(
+            { _id: new ObjectId(chatId) },
+            {
+              $set: {
+                messages: [...chat.messages],
+              },
+            }
+          )
+          .then(() => {
+            res.sendStatus(200);
+            client.close().then(() => {
+              resolve();
+            });
+          })
+          .catch((error) => {
+            res.sendStatus(500);
+            console.error(error);
+            client.close().then(() => {
+              reject(error);
+            });
           });
-        })
-        .catch((error) => {
-          res.sendStatus(500);
-          console.error(error);
-          client.close().then(() => {
-            reject(error);
-          });
-        });
-    });
+      })
+      .catch((e) => console.log(e));
   });
 });
 
@@ -133,7 +136,7 @@ router.get("/stats/:userId", authMiddleware, async (req, res) => {
         { $unwind: "$messages" },
         {
           $match: {
-            usersIds: { $in: [req.user._id, new ObjectId(userId)] },
+            usersIds: { $all: [req.user._id, new ObjectId(userId)] },
             "messages.date": {
               $gte: new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
             },
@@ -141,15 +144,17 @@ router.get("/stats/:userId", authMiddleware, async (req, res) => {
         },
         {
           $group: {
-            _id: null,
+            _id: "$usersIds",
             numberOfMessagesLastDay: { $sum: 1 },
           },
         },
       ])
       .toArray();
 
+    console.log(statsArray);
+
     const stats = {
-      numberOfMessagesLastDay: statsArray[0].numberOfMessagesLastDay,
+      numberOfMessagesLastDay: statsArray?.[0]?.numberOfMessagesLastDay ?? 0,
     };
 
     res.json({ stats });

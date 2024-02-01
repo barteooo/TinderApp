@@ -57,7 +57,7 @@ router.post(
         gender: "",
         dateOfBirth: "",
         interests: [],
-        genderInterest: [],
+        genderInterest: "men",
         about: "",
         matches: [],
         gotMatches: [],
